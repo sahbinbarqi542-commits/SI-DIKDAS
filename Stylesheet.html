@@ -1,0 +1,524 @@
+<style>
+/* ==========================================================================
+   SI-DIKDAS: SISTEM INFORMASI LAYANAN PENDIDIKAN DASAR
+   Tema: Sky-Blue Horizon & Cloud Glassmorphism with Bento Grid Architecture
+   Referensi: Biru Tut Wuri Handayani, Fluffy Clouds & Neon Lime-Gold Pill CTAs
+   ========================================================================== */
+
+:root {
+  --sky-blue: #0080E6;
+  --tutwuri-blue: #0084C9;
+  --deep-navy: #0A2540;
+  --lime-gold: #E2F952;
+  --lime-hover: #D0EE35;
+  --surface-bg: #F4F8FC;
+  --card-bg: #FFFFFF;
+  --text-main: #0F172A;
+  --text-muted: #64748B;
+  --border-color: #E2E8F0;
+  --radius-bento: 28px;
+  --radius-card: 18px;
+  --radius-pill: 9999px;
+  --shadow-soft: 0 10px 30px -10px rgba(0, 128, 230, 0.12), 0 4px 12px -2px rgba(10, 37, 64, 0.04);
+  --shadow-hover: 0 20px 40px -12px rgba(0, 128, 230, 0.22), translateY(-4px);
+}
+
+[data-theme="dark"] {
+  --surface-bg: #0B132B;
+  --card-bg: #1C2541;
+  --deep-navy: #080D1A;
+  --text-main: #F8FAFC;
+  --text-muted: #94A3B8;
+  --border-color: #2D3748;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-color: var(--surface-bg);
+  color: var(--text-main);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ==========================================================================
+   TOP UTILITY & NAVBAR
+   ========================================================================== */
+.top-utility-bar {
+  background: var(--deep-navy);
+  color: #E2E8F0;
+  font-size: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.main-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  transition: all 0.3s ease;
+}
+
+.navbar-brand-logo {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.2s ease;
+}
+
+.nav-link-custom {
+  font-weight: 600;
+  font-size: 13.5px;
+  letter-spacing: 0.02em;
+  color: #334155 !important;
+  padding: 8px 16px !important;
+  border-radius: var(--radius-pill);
+  transition: all 0.2s ease;
+}
+
+.nav-link-custom:hover,
+.nav-link-custom.active {
+  color: var(--tutwuri-blue) !important;
+  background: rgba(0, 132, 201, 0.08);
+}
+
+/* ==========================================================================
+   BUTTONS (NEON LIME PILL & FROSTED GLASS)
+   ========================================================================== */
+.btn-pill-lime {
+  background-color: var(--lime-gold);
+  color: #0A2540 !important;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 24px;
+  border-radius: var(--radius-pill);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 14px rgba(226, 249, 82, 0.4);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn-pill-lime:hover {
+  background-color: var(--lime-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(226, 249, 82, 0.6);
+  color: #0A2540 !important;
+}
+
+.btn-pill-lime .arrow-icon-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: #0A2540;
+  color: var(--lime-gold);
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.btn-glass {
+  background: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 10px 22px;
+  border-radius: var(--radius-pill);
+  transition: all 0.2s ease;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn-glass:hover {
+  background: rgba(255, 255, 255, 0.35);
+  border-color: #FFFFFF;
+  color: #FFFFFF !important;
+}
+
+/* ==========================================================================
+   HERO SECTION: SKY-BLUE HORIZON WITH REALISTIC CLOUDS
+   ========================================================================== */
+.hero-sky-section {
+  position: relative;
+  background: linear-gradient(180deg, #007CE8 0%, #0099FF 45%, #60B7FF 75%, #FFFFFF 100%);
+  color: #FFFFFF;
+  padding: 60px 0 140px;
+  overflow: hidden;
+  text-align: center;
+}
+
+.hero-sky-section::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 220px;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23FFFFFF" fill-opacity="0.9" d="M0,192L48,197.3C96,203,192,213,288,192C384,171,480,117,576,122.7C672,128,768,192,864,208C960,224,1056,192,1152,165.3C1248,139,1344,117,1392,106.7L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+  background-size: cover;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hero-display-title {
+  font-size: 3.25rem;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+  margin-bottom: 20px;
+  text-shadow: 0 4px 20px rgba(0, 50, 120, 0.2);
+}
+
+.hero-subtitle {
+  font-size: 1.15rem;
+  font-weight: 400;
+  color: #F0F9FF;
+  max-width: 680px;
+  margin: 0 auto 32px;
+  line-height: 1.6;
+}
+
+/* ==========================================================================
+   3D FLOATING CURVED CARD DECK (ARC CAROUSEL)
+   ========================================================================== */
+.card-deck-arc-wrapper {
+  position: relative;
+  z-index: 2;
+  margin: 40px auto 20px;
+  perspective: 1200px;
+  max-width: 1200px;
+}
+
+.card-deck-arc-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.card-deck-arc-container::-webkit-scrollbar {
+  display: none;
+}
+
+.floating-3d-card {
+  flex: 0 0 200px;
+  height: 250px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 18px 36px rgba(0, 60, 150, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  color: var(--text-main);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.floating-3d-card:hover {
+  transform: translateY(-12px) scale(1.05) !important;
+  box-shadow: 0 28px 48px rgba(0, 60, 150, 0.3);
+  z-index: 10;
+}
+
+/* Visual Arc Perspective Offsets */
+.floating-3d-card.card-arc-1 { transform: rotateY(18deg) translateY(24px); }
+.floating-3d-card.card-arc-2 { transform: rotateY(10deg) translateY(8px); }
+.floating-3d-card.card-arc-3 { transform: rotateY(0deg) translateY(-8px); border-top: 4px solid var(--lime-gold); }
+.floating-3d-card.card-arc-4 { transform: rotateY(-10deg) translateY(8px); }
+.floating-3d-card.card-arc-5 { transform: rotateY(-18deg) translateY(24px); }
+
+.social-proof-pill {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1E293B;
+  padding: 8px 20px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  margin-top: 15px;
+}
+
+.stars-rating {
+  color: #F59E0B;
+  letter-spacing: 2px;
+}
+
+/* ==========================================================================
+   LOGO MARQUEE / TICKER SECTION
+   ========================================================================== */
+.logo-ticker-section {
+  background: #FFFFFF;
+  padding: 30px 0;
+  border-bottom: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: scrollTicker 28s linear infinite;
+}
+
+.ticker-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 35px;
+  opacity: 0.65;
+  transition: opacity 0.2s ease;
+  color: #475569;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.ticker-item:hover {
+  opacity: 1;
+}
+
+.ticker-item img {
+  height: 28px;
+  width: auto;
+  filter: grayscale(100%);
+  transition: filter 0.2s ease;
+}
+
+.ticker-item:hover img {
+  filter: grayscale(0%);
+}
+
+@keyframes scrollTicker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ==========================================================================
+   BENTO GRID SECTION
+   ========================================================================== */
+.bento-section {
+  padding: 80px 0;
+}
+
+.inline-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin: 0 4px;
+}
+
+.badge-pill-blue { background: #0080E6; color: #FFFFFF; }
+.badge-pill-lime { background: var(--lime-gold); color: #0A2540; }
+
+.bento-card {
+  border-radius: var(--radius-bento);
+  padding: 36px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-soft);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.bento-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-hover);
+}
+
+.bento-blue {
+  background: linear-gradient(135deg, #0080E6 0%, #0060B3 100%);
+  color: #FFFFFF;
+}
+
+.bento-white {
+  background: #FFFFFF;
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+}
+
+.bento-lime {
+  background: var(--lime-gold);
+  color: #0A2540;
+}
+
+.bento-dark {
+  background: var(--deep-navy);
+  color: #FFFFFF;
+}
+
+.bento-giant-metric {
+  font-size: 3.5rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin: 16px 0 8px;
+}
+
+/* ==========================================================================
+   ADMIN PORTAL & SIDEBAR
+   ========================================================================== */
+.admin-sidebar {
+  width: 250px;
+  background: var(--deep-navy);
+  color: #FFFFFF;
+  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1050;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.3s ease;
+}
+
+.admin-main-content {
+  margin-left: 250px;
+  padding: 32px;
+  min-height: 100vh;
+  background: #F8FAFC;
+}
+
+.admin-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: #94A3B8;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  margin-bottom: 4px;
+  cursor: pointer;
+}
+
+.admin-menu-item:hover,
+.admin-menu-item.active {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.admin-menu-item.active {
+  color: var(--lime-gold);
+  border-left: 4px solid var(--lime-gold);
+}
+
+/* ==========================================================================
+   TABLES & DATA CONTROLS
+   ========================================================================== */
+.custom-table {
+  background: #FFFFFF;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--border-color);
+}
+
+.custom-table th {
+  background: #F8FAFC;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  color: #475569;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.custom-table td {
+  padding: 16px 20px;
+  vertical-align: middle;
+  font-size: 14px;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-success { background: #DCFCE7; color: #166534; }
+.status-warning { background: #FEF9C3; color: #854D0E; }
+.status-danger  { background: #FEE2E2; color: #991B1B; }
+
+/* ==========================================================================
+   A4 PRINT PREVIEW (KOP RESMI DINAS)
+   ========================================================================== */
+.a4-print-canvas {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 20mm;
+  margin: 0 auto;
+  background: #FFFFFF;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+  color: #000000;
+  font-family: 'Times New Roman', serif;
+}
+
+.kop-surat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 3px double #000000;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.kop-logo {
+  height: 75px;
+  width: auto;
+}
+
+/* ==========================================================================
+   RESPONSIVE MOBILE BREAKPOINTS
+   ========================================================================== */
+@media (max-width: 991px) {
+  .hero-display-title { font-size: 2.25rem; }
+  .admin-sidebar { transform: translateX(-100%); }
+  .admin-sidebar.show { transform: translateX(0); }
+  .admin-main-content { margin-left: 0; }
+  .bento-card { min-height: auto; padding: 24px; }
+}
+</style>

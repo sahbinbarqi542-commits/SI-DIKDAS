@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+
+<html lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Pratinjau &amp; Kurasi Modul Ajar - SI-DIKDAS Konut</title>
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 with plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration JSON Verbatim -->
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "secondary-container": "#c4dcff",
+            "on-surface": "#131b2e",
+            "secondary-fixed": "#d2e4ff",
+            "secondary-fixed-dim": "#b0c8eb",
+            "on-surface-variant": "#3f4850",
+            "primary-fixed-dim": "#94ccff",
+            "tertiary-container": "#936f00",
+            "on-tertiary-container": "#fffbff",
+            "secondary": "#49607e",
+            "tertiary-fixed-dim": "#f6bf22",
+            "on-primary-container": "#fdfcff",
+            "on-primary-fixed-variant": "#004b74",
+            "on-background": "#131b2e",
+            "surface": "#faf8ff",
+            "primary": "#006195",
+            "on-primary-fixed": "#001d32",
+            "on-tertiary-fixed-variant": "#5a4300",
+            "surface-tint": "#006399",
+            "surface-container-high": "#e2e7ff",
+            "primary-container": "#007abb",
+            "outline": "#707882",
+            "outline-variant": "#bfc7d2",
+            "on-secondary-container": "#49617f",
+            "inverse-on-surface": "#eef0ff",
+            "inverse-primary": "#94ccff",
+            "surface-container-low": "#f2f3ff",
+            "on-error": "#ffffff",
+            "on-primary": "#ffffff",
+            "primary-fixed": "#cde5ff",
+            "error": "#ba1a1a",
+            "surface-dim": "#d2d9f4",
+            "tertiary": "#745800",
+            "surface-variant": "#dae2fd",
+            "on-secondary": "#ffffff",
+            "surface-container-highest": "#dae2fd",
+            "on-tertiary-fixed": "#251a00",
+            "error-container": "#ffdad6",
+            "on-secondary-fixed-variant": "#314865",
+            "tertiary-fixed": "#ffdf99",
+            "on-error-container": "#93000a",
+            "inverse-surface": "#283044",
+            "surface-bright": "#faf8ff",
+            "background": "#faf8ff",
+            "on-tertiary": "#ffffff",
+            "surface-container": "#eaedff",
+            "on-secondary-fixed": "#001c37"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "gutter": "1.5rem",
+            "space-lg": "1.5rem",
+            "space-xs": "0.25rem",
+            "margin": "2rem",
+            "space-2xl": "4rem",
+            "space-xl": "2.5rem",
+            "space-md": "1rem",
+            "margin-sm": "1rem",
+            "space-sm": "0.5rem",
+            "gutter-sm": "1rem"
+          },
+          "fontFamily": {
+            "display-hero": ["Plus Jakarta Sans"],
+            "headline-lg": ["Plus Jakarta Sans"],
+            "headline-md": ["Plus Jakarta Sans"],
+            "label-sm": ["Plus Jakarta Sans"],
+            "body-sm": ["Plus Jakarta Sans"],
+            "headline-xl": ["Plus Jakarta Sans"],
+            "headline-sm": ["Plus Jakarta Sans"],
+            "label-md": ["Plus Jakarta Sans"],
+            "display-hero-mobile": ["Plus Jakarta Sans"],
+            "metric-stat": ["Plus Jakarta Sans"],
+            "headline-xl-mobile": ["Plus Jakarta Sans"],
+            "body-md": ["Plus Jakarta Sans"],
+            "body-lg": ["Plus Jakarta Sans"]
+          },
+          "fontSize": {
+            "display-hero": ["56px", { "lineHeight": "64px", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-md": ["22px", { "lineHeight": "30px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "label-sm": ["11px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+            "body-sm": ["13px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "headline-xl": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.025em", "fontWeight": "700" }],
+            "headline-sm": ["18px", { "lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-md": ["13px", { "lineHeight": "18px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+            "display-hero-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "metric-stat": ["32px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+            "headline-xl-mobile": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-md": ["15px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-lg": ["18px", { "lineHeight": "28px", "letterSpacing": "0em", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-background text-on-surface antialiased min-h-screen flex flex-col font-body-md text-body-md selection:bg-secondary-container selection:text-on-secondary-container">
+<!-- ================= TOP APP BAR (SHARED COMPONENT) ================= -->
+<header class="bg-surface-container-lowest/80 dark:bg-inverse-surface/80 backdrop-blur-md text-primary dark:text-inverse-primary docked full-width top-0 sticky z-50 shadow-sm dark:shadow-none">
+<div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
+<!-- Brand & Emblems -->
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-on-primary shadow-sm shadow-primary/30">
+<span class="material-symbols-outlined text-2xl" data-icon="school" style="font-variation-settings: 'FILL' 1;">school</span>
+</div>
+<div class="flex flex-col">
+<span class="text-headline-sm font-headline-sm font-bold text-primary dark:text-primary-fixed tracking-tight">SI-DIKDAS Konut</span>
+<span class="text-label-sm font-label-sm text-secondary -mt-1">Dinas Pendidikan dan Kebudayaan Kab. Konawe Utara</span>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-on-surface-variant dark:text-surface-variant pb-1 font-medium hover:text-primary dark:hover:text-inverse-primary transition-colors duration-150" href="#">Beranda</a>
+<a class="text-on-surface-variant dark:text-surface-variant pb-1 font-medium hover:text-primary dark:hover:text-inverse-primary transition-colors duration-150" href="#">Layanan PIP</a>
+<a class="text-on-surface-variant dark:text-surface-variant pb-1 font-medium hover:text-primary dark:hover:text-inverse-primary transition-colors duration-150" href="#">Sarpras SD/SMP</a>
+<a class="text-primary dark:text-inverse-primary font-bold border-b-2 border-primary dark:border-inverse-primary pb-1" href="#">Data Dapodik</a>
+<a class="text-on-surface-variant dark:text-surface-variant pb-1 font-medium hover:text-primary dark:hover:text-inverse-primary transition-colors duration-150" href="#">Unduh Regulasi</a>
+</nav>
+<!-- Right Control & Admin Section -->
+<div class="flex items-center gap-3">
+<div class="relative hidden lg:block">
+<input class="h-10 pl-9 pr-3 text-body-sm font-body-sm rounded-xl bg-surface-container-low border border-outline-variant/40 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-on-surface placeholder:text-outline" placeholder="Cari modul atau SK..." type="text"/>
+<span class="material-symbols-outlined absolute left-2.5 top-2.5 text-outline text-lg" data-icon="search">search</span>
+</div>
+<button class="p-2 rounded-xl text-secondary hover:text-primary hover:bg-surface-container transition-all relative" title="Notifikasi Verifikasi">
+<span class="material-symbols-outlined text-xl" data-icon="notifications">notifications</span>
+<span class="w-2 h-2 rounded-full bg-error absolute top-2 right-2"></span>
+</button>
+<button class="p-2 rounded-xl text-secondary hover:text-primary hover:bg-surface-container transition-all" title="Bantuan Helpdesk">
+<span class="material-symbols-outlined text-xl" data-icon="headset_mic">headset_mic</span>
+</button>
+<a class="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-secondary-fixed text-on-secondary-fixed font-headline-sm text-body-sm font-semibold hover:bg-secondary-container transition-all" href="#">
+<span class="material-symbols-outlined text-base" data-icon="verified_user">verified_user</span>
+<span>Verifikasi PIP</span>
+</a>
+<a class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-on-primary font-headline-sm text-body-sm font-semibold hover:bg-primary-container shadow-sm hover:shadow transition-all" href="#">
+<span class="material-symbols-outlined text-base" data-icon="admin_panel_settings">admin_panel_settings</span>
+<span>Portal Admin</span>
+</a>
+</div>
+</div>
+</header>
+<!-- ================= SUB-HERO SKY AMBIANCE & BREADCRUMB ================= -->
+<section class="relative bg-gradient-to-b from-primary via-primary-container to-surface pt-6 pb-12 overflow-hidden text-on-primary">
+<!-- Subtle Cloud Decorative Glow (Reference Style Influence) -->
+<div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px]"></div>
+<div class="absolute -top-24 right-1/4 w-96 h-96 bg-primary-fixed-dim/20 rounded-full blur-3xl pointer-events-none"></div>
+<div class="max-w-7xl mx-auto px-6 relative z-10">
+<!-- Breadcrumb Navigation -->
+<nav class="flex items-center gap-2 text-label-md font-label-md text-surface-container-high/90 mb-4 overflow-x-auto whitespace-nowrap py-1">
+<a class="hover:text-surface-container-lowest transition-colors flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="home">home</span> Beranda
+        </a>
+<span class="material-symbols-outlined text-xs opacity-60" data-icon="chevron_right">chevron_right</span>
+<a class="hover:text-surface-container-lowest transition-colors" href="#">Seksi Kurikulum &amp; Kesiswaan</a>
+<span class="material-symbols-outlined text-xs opacity-60" data-icon="chevron_right">chevron_right</span>
+<a class="hover:text-surface-container-lowest transition-colors" href="#">Repository Perangkat Ajar</a>
+<span class="material-symbols-outlined text-xs opacity-60" data-icon="chevron_right">chevron_right</span>
+<span class="text-surface-container-lowest font-bold">Pratinjau &amp; Lembar Kurasi Modul</span>
+</nav>
+<!-- Header Content & Hero Status Banner -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-4">
+<div>
+<div class="flex flex-wrap items-center gap-2.5 mb-2">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-label-sm font-label-sm bg-tertiary-fixed text-on-tertiary-fixed shadow-sm">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+              Menunggu Kurasi Tahap 2
+            </span>
+<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-label-sm font-label-sm bg-surface-container-lowest/20 text-surface-container-lowest backdrop-blur-md border border-white/20">
+<span class="material-symbols-outlined text-xs" data-icon="verified">verified</span> Rekomendasi Standar BSKAP Kemendikbud
+            </span>
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-label-sm font-label-sm bg-surface-container-lowest/15 text-surface-container-lowest">
+              ID Dokumen: #MKD-2025-0891
+            </span>
+</div>
+<h1 class="text-headline-xl font-headline-xl tracking-tight text-surface-container-lowest max-w-4xl">
+            Modul Ajar IPAS Kelas 5 SD: Ekosistem Pesisir &amp; Konservasi Hutan Mangrove Teluk Lasolo
+          </h1>
+<p class="text-body-md font-body-md text-surface-container-high/90 mt-1 max-w-3xl">
+            Penyelarasan Capaian Pembelajaran Fase C dengan Kontekstualisasi Geopark dan Wilayah Konservasi Bahari Pesisir Konawe Utara.
+          </p>
+</div>
+<!-- Quick Summary Score Capsule (Floating Glass) -->
+<div class="bg-surface-container-lowest/90 dark:bg-inverse-surface/90 backdrop-blur-md text-on-surface p-4 rounded-2xl border border-white/60 shadow-lg flex items-center gap-4 shrink-0">
+<div class="w-14 h-14 rounded-xl bg-primary/10 border border-primary/20 flex flex-col items-center justify-center">
+<span class="text-headline-lg font-headline-lg text-primary leading-none">88</span>
+<span class="text-label-sm font-label-sm text-secondary -mt-0.5">/100</span>
+</div>
+<div class="pr-2">
+<div class="text-label-md font-label-md text-on-surface font-bold">Skor Kelayakan Draf</div>
+<div class="text-body-sm font-body-sm text-secondary">4 dari 4 Kriteria Terpenuhi</div>
+<div class="flex items-center gap-1 mt-1 text-label-sm font-label-sm text-primary font-bold">
+<span class="material-symbols-outlined text-sm" data-icon="check_circle">check_circle</span>
+              Layak dengan Catatan Ringan
+            </div>
+</div>
+</div>
+</div>
+<!-- Action Bar (Floating Multi-Action Hub) -->
+<div class="mt-2 pt-4 border-t border-white/20 flex flex-wrap items-center justify-between gap-4">
+<div class="flex flex-wrap items-center gap-2.5">
+<button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-tertiary-fixed text-on-tertiary-fixed font-headline-sm text-body-sm font-bold shadow-md hover:bg-tertiary-fixed-dim transition-all active:scale-95">
+<span class="material-symbols-outlined text-lg" data-icon="task_alt">task_alt</span>
+            Setujui &amp; Terbitkan ke Repository
+          </button>
+<button class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-error-container text-on-error-container font-headline-sm text-body-sm font-semibold hover:bg-error-container/80 transition-all active:scale-95">
+<span class="material-symbols-outlined text-lg" data-icon="assignment_return">assignment_return</span>
+            Kembalikan untuk Revisi Guru
+          </button>
+</div>
+<div class="flex items-center gap-2.5">
+<a class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-container-lowest/20 hover:bg-surface-container-lowest/30 text-surface-container-lowest border border-white/30 text-body-sm font-medium transition-all backdrop-blur-sm" href="#">
+<span class="material-symbols-outlined text-base" data-icon="download">download</span>
+            Unduh Berkas Asli (PDF 4.2 MB)
+          </a>
+<button class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface-container-lowest/20 hover:bg-surface-container-lowest/30 text-surface-container-lowest border border-white/30 text-body-sm font-medium transition-all backdrop-blur-sm">
+<span class="material-symbols-outlined text-base" data-icon="print">print</span>
+            Cetak Lembar Telaah
+          </button>
+</div>
+</div>
+</div>
+</section>
+<!-- ================= MAIN WORKSPACE (TWO-COLUMN SPLIT) ================= -->
+<main class="max-w-7xl mx-auto px-6 -mt-6 mb-16 w-full flex-1">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- LEFT COLUMN: INTERACTIVE DOCUMENT READER / PDF VIEWER (7 Cols) -->
+<div class="lg:col-span-7 flex flex-col gap-4">
+<div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 shadow-sm overflow-hidden flex flex-col h-[940px]">
+<!-- Viewer Toolbar -->
+<div class="bg-surface-container-low px-4 py-3 border-b border-outline-variant/30 flex items-center justify-between gap-3 shrink-0">
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-surface-container text-secondary">
+<span class="material-symbols-outlined text-lg" data-icon="picture_as_pdf">picture_as_pdf</span>
+</span>
+<div>
+<p class="text-label-md font-label-md text-on-surface truncate max-w-xs font-bold">Modul_IPAS_FaseC_Lasolo_V2.pdf</p>
+<p class="text-label-sm font-label-sm text-secondary">Halaman 1 dari 32</p>
+</div>
+</div>
+<!-- Page Navigation Controls -->
+<div class="flex items-center gap-1 bg-surface-container-lowest px-2 py-1 rounded-xl border border-outline-variant/30 text-on-surface">
+<button class="p-1 hover:text-primary text-secondary rounded" title="Halaman Sebelumnya">
+<span class="material-symbols-outlined text-base" data-icon="arrow_back_ios_new">arrow_back_ios_new</span>
+</button>
+<span class="text-body-sm font-body-sm px-2 font-medium">1 / 32</span>
+<button class="p-1 hover:text-primary text-secondary rounded" title="Halaman Berikutnya">
+<span class="material-symbols-outlined text-base" data-icon="arrow_forward_ios">arrow_forward_ios</span>
+</button>
+</div>
+<!-- View Options & Zoom -->
+<div class="flex items-center gap-1">
+<button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded-lg" title="Perkecil">
+<span class="material-symbols-outlined text-lg" data-icon="zoom_out">zoom_out</span>
+</button>
+<span class="text-label-sm font-label-sm text-secondary px-1">100%</span>
+<button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded-lg" title="Perbesar">
+<span class="material-symbols-outlined text-lg" data-icon="zoom_in">zoom_in</span>
+</button>
+<div class="w-px h-5 bg-outline-variant/50 mx-1"></div>
+<button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded-lg" title="Mode Layar Penuh">
+<span class="material-symbols-outlined text-lg" data-icon="fullscreen">fullscreen</span>
+</button>
+</div>
+</div>
+<!-- Document Canvas & Preview Body with Official Watermark -->
+<div class="flex-1 bg-surface-dim/40 overflow-y-auto p-6 flex justify-center relative">
+<!-- Simulated Official Document Sheet (A4 Proportion) -->
+<div class="bg-surface-container-lowest w-full max-w-[560px] min-h-[820px] rounded-lg shadow-md border border-outline-variant/30 p-8 relative flex flex-col justify-between overflow-hidden">
+<!-- Translucent Watermark Overlay -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-20">
+<div class="transform -rotate-45 text-center opacity-10 border-4 border-dashed border-primary px-8 py-4 rounded-3xl">
+<p class="text-headline-xl font-headline-xl text-primary font-extrabold uppercase tracking-widest">
+                    DRAF KURASI DISDIKBUD KONAWE UTARA
+                  </p>
+<p class="text-headline-sm font-headline-sm text-primary font-bold">
+                    TAHUN AJARAN 2025/2026
+                  </p>
+</div>
+</div>
+<!-- Top Letterhead of Document Sheet -->
+<div class="border-b-2 border-primary pb-4 flex items-center gap-4 relative z-10">
+<div class="w-14 h-14 rounded-lg bg-surface-container-high flex items-center justify-center shrink-0 border border-outline-variant/30">
+<span class="material-symbols-outlined text-3xl text-primary" data-icon="account_balance">account_balance</span>
+</div>
+<div>
+<h4 class="text-label-sm font-label-sm text-primary font-extrabold tracking-wider">PEMERINTAH KABUPATEN KONAWE UTARA</h4>
+<h3 class="text-headline-sm font-headline-sm text-on-surface font-bold leading-tight">DINAS PENDIDIKAN DAN KEBUDAYAAN</h3>
+<p class="text-body-sm font-body-sm text-secondary text-xs">Kompleks Perkantoran Wanggudu, Kec. Asera, Kab. Konawe Utara - Sulawesi Tenggara</p>
+</div>
+</div>
+<!-- Document Title & Content Mockup -->
+<div class="my-6 flex-1 relative z-10">
+<div class="bg-secondary-fixed/50 p-4 rounded-xl border border-secondary-container mb-6">
+<span class="inline-block px-2.5 py-0.5 rounded-full bg-primary text-on-primary text-label-sm font-label-sm mb-2">MODUL AJAR KURIKULUM MERDEKA</span>
+<h2 class="text-headline-md font-headline-md text-on-surface font-bold">
+                    ILMU PENGETAHUAN ALAM DAN SOSIAL (IPAS)
+                  </h2>
+<p class="text-body-sm font-body-sm text-secondary font-medium mt-1">
+                    Topik: Ekosistem Hutan Bakau (Mangrove) Teluk Lasolo &amp; Konservasi Hayati Maritim Labengki
+                  </p>
+</div>
+<!-- Document Structure Overview -->
+<div class="space-y-4">
+<div>
+<h5 class="text-label-md font-label-md text-primary font-bold flex items-center gap-1.5 mb-1">
+<span class="w-2 h-2 rounded-full bg-primary"></span> I. INFORMASI UMUM
+                    </h5>
+<div class="grid grid-cols-2 gap-2 text-body-sm font-body-sm text-on-surface-variant bg-surface-container-lowest p-3 rounded-lg border border-outline-variant/30">
+<div><strong class="text-on-surface">Penyusun:</strong> Nurhalimah, S.Pd</div>
+<div><strong class="text-on-surface">Instansi:</strong> SDN 1 Wanggudu</div>
+<div><strong class="text-on-surface">Fase / Kelas:</strong> C / V (Lima)</div>
+<div><strong class="text-on-surface">Alokasi Waktu:</strong> 3 Pertemuan (6 JP)</div>
+</div>
+</div>
+<div>
+<h5 class="text-label-md font-label-md text-primary font-bold flex items-center gap-1.5 mb-1">
+<span class="w-2 h-2 rounded-full bg-primary"></span> II. KOMPONEN INTI &amp; CAPAIAN
+                    </h5>
+<p class="text-body-sm font-body-sm text-on-surface-variant leading-relaxed">
+                      Peserta didik menganalisis hubungan antar komponen biotik dan abiotik dalam ekosistem perairan payau mangrove Konawe Utara, mengidentifikasi ancaman abrasi pesisir, serta merumuskan aksi nyata pelestarian lingkungan lokal secara berkelanjutan.
+                    </p>
+</div>
+<div>
+<h5 class="text-label-md font-label-md text-primary font-bold flex items-center gap-1.5 mb-1">
+<span class="w-2 h-2 rounded-full bg-primary"></span> III. INTEGRASI KEARIFAN LOKAL
+                    </h5>
+<div class="p-3 bg-tertiary-fixed/30 rounded-xl border border-tertiary-fixed">
+<p class="text-body-sm font-body-sm text-on-surface leading-snug">
+<strong>Muatan Lokal Konawe Utara:</strong> Studi observasi lapangan vegetasi <em>Rhizophora</em> di muara Sungai Lasolo dan peran tradisi nelayan Suku Tolaki-Bajo dalam menjaga keseimbangan terumbu karang Labengki.
+                      </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Page Footer of the Document -->
+<div class="border-t border-outline-variant/40 pt-3 flex items-center justify-between text-label-sm font-label-sm text-secondary relative z-10">
+<span>Perangkat Ajar Terverifikasi Disdikbud Konut</span>
+<span>Halaman 1 - Identitas &amp; Rasionalisasi</span>
+</div>
+</div>
+</div>
+<!-- Bottom Document Navigation Bar -->
+<div class="p-3 bg-surface-container-lowest border-t border-outline-variant/30 flex items-center justify-between text-body-sm font-body-sm text-secondary shrink-0">
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-base" data-icon="bookmarks">bookmarks</span>
+                Daftar Bab &amp; LKPD
+              </button>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-base" data-icon="view_thumbnail">maps_ar</span>
+                32 Thumbnail
+              </button>
+</div>
+<span class="text-xs text-outline">Terakhir diselaraskan: 14 menit yang lalu oleh Validator Tim 1</span>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN: METADATA, CURATOR CHECKLIST & REVIEW FORM (5 Cols) -->
+<div class="lg:col-span-5 flex flex-col gap-6">
+<!-- 1. Profil Pendidik Pengunggah & Akreditasi Satpen -->
+<div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 shadow-sm p-5">
+<div class="flex items-center justify-between mb-4">
+<span class="text-label-md font-label-md text-primary font-bold uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-base" data-icon="person_pin">person_pin</span> Identitas Penyusun
+            </span>
+<span class="px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-secondary-fixed text-on-secondary-fixed font-semibold">
+              Guru Penggerak Angkatan 9
+            </span>
+</div>
+<div class="flex items-start gap-4">
+<div class="relative shrink-0">
+<img class="w-14 h-14 rounded-2xl object-cover border-2 border-primary/20 shadow-sm" data-alt="Potret foto profil resmi seorang guru wanita Indonesia berhijab rapi mengenakan seragam dinas batik korpri dengan latar belakang pencahayaan studio lembut, tersenyum ramah dan berwibawa, mewakili profesionalisme tenaga pendidik tingkat sekolah dasar di daerah kabupaten." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCts4h3A3zm70dTmSsrUQxP9hb_28_dUq5fS0kp52KC4B9P2sWytdjD-Fe0J_vAH3eDaMa_s0g5VN9pwFCPNP3V1pq_fGeL4RxuOkULQyqkec5xyKA-iIa0AAnuYRXH5q2D_I8KZGUg9L-mvprd1eHaFeNtJVPirzgjF4J9eBGkYFtytjx1UFN55SnbWo4uFl1i9_0bhYa4ZkSdun4bRFZPC_qw15tlAd6ZenOQMdXX"/>
+<span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center text-on-primary text-[10px]" title="Akun Belajar.id Aktif">
+<span class="material-symbols-outlined text-xs" data-icon="check">check</span>
+</span>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="text-headline-sm font-headline-sm text-on-surface font-bold truncate">Nurhalimah, S.Pd.</h3>
+<p class="text-body-sm font-body-sm text-secondary truncate">NIP: 19880412 201101 2 008</p>
+<div class="mt-2 flex flex-wrap items-center gap-1.5">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-container text-on-surface-variant text-label-sm font-label-sm">
+<span class="material-symbols-outlined text-xs text-primary" data-icon="apartment">apartment</span> SDN 1 Wanggudu
+                </span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-container text-on-surface-variant text-label-sm font-label-sm">
+<span class="material-symbols-outlined text-xs text-primary" data-icon="location_on">location_on</span> Kec. Asera
+                </span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-outline-variant/30 grid grid-cols-2 gap-2 text-label-sm font-label-sm">
+<div class="bg-surface-container-low p-2 rounded-xl">
+<span class="text-secondary block">Email Akun:</span>
+<span class="text-on-surface font-semibold truncate block">nurhalimah@guru.sd.belajar.id</span>
+</div>
+<div class="bg-surface-container-low p-2 rounded-xl">
+<span class="text-secondary block">Tanggal Unggah:</span>
+<span class="text-on-surface font-semibold block">18 Oktober 2025, 09:42 WITA</span>
+</div>
+</div>
+</div>
+<!-- 2. Taksonomi & Rubrik Verifikasi BSKAP Kemendikbud -->
+<div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 shadow-sm p-5">
+<div class="flex items-center justify-between mb-3">
+<h3 class="text-headline-sm font-headline-sm text-on-surface font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="fact_check">fact_check</span>
+              Rubrik Kurasi Standar BSKAP
+            </h3>
+<span class="text-label-sm font-label-sm bg-tertiary-fixed text-on-tertiary-fixed px-2 py-0.5 rounded-full font-bold">Wajib 4 Pilar</span>
+</div>
+<p class="text-body-sm font-body-sm text-secondary mb-4">
+            Penelaahan kesesuaian komponen esensial modul ajar sesuai panduan asesmen dan pembelajaran nasional.
+          </p>
+<div class="space-y-3">
+<!-- Item 1 -->
+<label class="flex items-start gap-3 p-3 rounded-xl border border-outline-variant/30 hover:bg-surface-container-low transition-colors cursor-pointer">
+<input checked="" class="mt-1 w-4 h-4 rounded text-primary focus:ring-primary border-outline-variant" type="checkbox"/>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="text-label-md font-label-md text-on-surface font-bold">Kesesuaian TP &amp; Alur Pembelajaran (ATP)</span>
+<span class="text-label-sm font-label-sm text-primary font-bold">Terpenuhi (Sesuai)</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant text-xs mt-0.5">Tujuan terukur dengan kata kerja operasional taksonomi Bloom revisi dan memuat pemahaman bermakna.</p>
+</div>
+</label>
+<!-- Item 2 -->
+<label class="flex items-start gap-3 p-3 rounded-xl border border-outline-variant/30 hover:bg-surface-container-low transition-colors cursor-pointer">
+<input checked="" class="mt-1 w-4 h-4 rounded text-primary focus:ring-primary border-outline-variant" type="checkbox"/>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="text-label-md font-label-md text-on-surface font-bold">Asesmen Awal &amp; Formatif Autentik</span>
+<span class="text-label-sm font-label-sm text-primary font-bold">Terpenuhi (Lengkap)</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant text-xs mt-0.5">Memuat rubrik observasi eksplorasi mangrove, tes diagnostik non-kognitif, dan lembar ceklis.</p>
+</div>
+</label>
+<!-- Item 3 -->
+<label class="flex items-start gap-3 p-3 rounded-xl border border-tertiary-fixed bg-tertiary-fixed/10 hover:bg-tertiary-fixed/20 transition-colors cursor-pointer">
+<input checked="" class="mt-1 w-4 h-4 rounded text-tertiary focus:ring-tertiary border-tertiary" type="checkbox"/>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="text-label-md font-label-md text-on-surface font-bold">Diferensiasi Pembelajaran (Proses &amp; Produk)</span>
+<span class="text-label-sm font-label-sm text-tertiary font-bold">Perlu Perincian</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant text-xs mt-0.5">Panduan penanganan siswa kategori pendampingan khusus perlu diperkaya lembar kerja visual bertingkat.</p>
+</div>
+</label>
+<!-- Item 4 -->
+<label class="flex items-start gap-3 p-3 rounded-xl border border-outline-variant/30 hover:bg-surface-container-low transition-colors cursor-pointer">
+<input checked="" class="mt-1 w-4 h-4 rounded text-primary focus:ring-primary border-outline-variant" type="checkbox"/>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="text-label-md font-label-md text-on-surface font-bold">Kontekstualisasi Muatan Lokal Konawe Utara</span>
+<span class="text-label-sm font-label-sm text-primary font-bold">Sangat Baik (Inovatif)</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant text-xs mt-0.5">Mengangkat ekosistem pesisir mangrove Teluk Lasolo dan kearifan bahari Labengki secara aplikatif.</p>
+</div>
+</label>
+</div>
+</div>
+<!-- 3. Form Catatan Review & Riwayat Telaah Kurator -->
+<div class="bg-surface-container-lowest rounded-2xl border border-outline-variant/40 shadow-sm p-5 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<h3 class="text-headline-sm font-headline-sm text-on-surface font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="edit_note">edit_note</span>
+              Catatan &amp; Umpan Balik Kurator
+            </h3>
+<span class="text-label-sm font-label-sm text-secondary">Seksi Kurikulum SD</span>
+</div>
+<!-- Riwayat Catatan Sebelumnya -->
+<div class="bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/30">
+<div class="flex items-center justify-between mb-1.5">
+<span class="text-label-md font-label-md text-on-surface font-bold">Drs. H. Sudirman, M.Pd (Fasilitator Daerah)</span>
+<span class="text-label-sm font-label-sm text-secondary">Kemarin, 16:30</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant italic">
+              "Pendekatan kontekstual pesisir Teluk Lasolo sangat segar dan relevan. Mohon tambahkan 1 lembar aktivitas sederhana pada Pertemuan 2 untuk murid yang belum lancar membaca instruksi kompleks."
+            </p>
+</div>
+<!-- Input Catatan Baru -->
+<div>
+<label class="block text-label-md font-label-md text-on-surface font-semibold mb-1.5">
+              Tulis Catatan Rekomendasi / Arahan Revisi Baru:
+            </label>
+<textarea class="w-full text-body-sm font-body-sm rounded-xl border border-outline-variant/40 focus:border-primary focus:ring-2 focus:ring-primary/20 p-3 text-on-surface placeholder:text-outline bg-surface-container-lowest resize-none" placeholder="Tuliskan catatan teknis penyempurnaan modul untuk guru yang bersangkutan..." rows="3"></textarea>
+</div>
+<!-- Action Buttons in Form -->
+<div class="flex items-center justify-between pt-2">
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-xl text-secondary hover:text-primary hover:bg-surface-container" title="Lampirkan Dokumen Referensi">
+<span class="material-symbols-outlined text-xl" data-icon="attach_file">attach_file</span>
+</button>
+<button class="p-2 rounded-xl text-secondary hover:text-primary hover:bg-surface-container" title="Template Rubrik Cepat">
+<span class="material-symbols-outlined text-xl" data-icon="auto_awesome">auto_awesome</span>
+</button>
+</div>
+<button class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-headline-sm text-body-sm font-bold shadow transition-all active:scale-95">
+<span class="material-symbols-outlined text-lg" data-icon="save">save</span>
+              Simpan Lembar Telaah
+            </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- ================= FOOTER (SHARED COMPONENT) ================= -->
+<footer class="bg-on-primary-fixed dark:bg-inverse-surface text-inverse-on-surface docked full-width bottom border-t border-outline-variant/20 mt-auto">
+<div class="w-full px-6 py-12 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex flex-col items-center md:items-start text-center md:text-left gap-1">
+<span class="text-headline-md font-headline-md font-extrabold text-surface-container-lowest tracking-tight">SI-DIKDAS Konut</span>
+<p class="text-label-sm font-label-sm text-outline-variant dark:text-surface-dim">
+          © 2025 Dinas Pendidikan dan Kebudayaan Kabupaten Konawe Utara. Hak Cipta Dilindungi Undang-Undang.
+        </p>
+</div>
+<div class="flex flex-wrap justify-center md:justify-end items-center gap-x-6 gap-y-2 text-label-sm font-label-sm">
+<a class="text-outline-variant dark:text-surface-dim hover:text-surface-bright transition-colors duration-200" href="#">Kebijakan Privasi</a>
+<a class="text-outline-variant dark:text-surface-dim hover:text-surface-bright transition-colors duration-200" href="#">Dapodik Kemendikbudristek</a>
+<a class="text-outline-variant dark:text-surface-dim hover:text-surface-bright transition-colors duration-200" href="#">Standar Pelayanan BOSP</a>
+<a class="text-outline-variant dark:text-surface-dim hover:text-surface-bright transition-colors duration-200" href="#">Pengaduan SP4N-LAPOR!</a>
+<a class="text-outline-variant dark:text-surface-dim hover:text-surface-bright transition-colors duration-200" href="#">Kontak Kantor Wanggudu</a>
+</div>
+</div>
+</footer>
+</body></html>

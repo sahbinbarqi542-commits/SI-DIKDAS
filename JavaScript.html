@@ -1,0 +1,921 @@
+<script>
+/**
+ * ============================================================================
+ * SI-DIKDAS: JAVASCRIPT MODULAR LOGIC (CLIENT-SIDE)
+ * ============================================================================
+ * - Single Page Application (SPA) Controller
+ * - Dynamic Logo & Branding Live Synchronizer
+ * - Chart.js Visual Analytics Engine
+ * - SheetJS Excel (.xlsx) Exporter
+ * - A4 Official Document PDF Preview & Print Engine
+ * ============================================================================
+ */
+
+// Global State
+let appConfig = {};
+let currentAdminUser = null;
+let bospDataCache = [];
+let sarprasDataCache = [];
+let chartBospInstance = null;
+let chartSarprasInstance = null;
+
+// Lifecycle: Init saat halaman siap
+document.addEventListener('DOMContentLoaded', () => {
+  initApp();
+});
+
+function initApp() {
+  loadConfig();
+  loadAnalytics();
+  checkStoredAdminSession();
+}
+
+/**
+ * ============================================================================
+ * 1. KONFIGURASI SISTEM & GANTI LOGO DINAMIS
+ * ============================================================================
+ */
+function loadConfig() {
+  google.script.run
+    .withSuccessHandler(res => {
+      if (res && res.success && res.data) {
+        appConfig = res.data;
+        applyConfigToUI(appConfig);
+      }
+    })
+    .withFailureHandler(err => console.error("Gagal load config:", err))
+    .getAppConfig();
+}
+
+function applyConfigToUI(cfg) {
+  // Update Branding Texts
+  if (cfg.app_name) {
+    document.title = cfg.app_name + " | Dinas Dikbud Konawe Utara";
+    const appTitles = ['navAppName', 'prevAppNamePreview', 'footerAppName'];
+    appTitles.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerText = cfg.app_name;
+    });
+  }
+
+  if (cfg.nama_dinas) {
+    const el = document.getElementById('navDinasName');
+    if (el) el.innerText = cfg.nama_dinas;
+    const elPrev = document.getElementById('prevDinasPreview');
+    if (elPrev) elPrev.innerText = cfg.nama_dinas;
+  }
+
+  if (cfg.app_tagline) {
+    const el = document.getElementById('footerTagline');
+    if (el) el.innerText = cfg.app_tagline;
+  }
+
+  if (cfg.hotline_wa) {
+    const el = document.getElementById('txtHotline');
+    if (el) el.innerText = cfg.hotline_wa;
+    const elFoot = document.getElementById('footerHotline');
+    if (elFoot) elFoot.innerText = cfg.hotline_wa;
+  }
+
+  if (cfg.alamat_kantor) {
+    const el = document.getElementById('footerAlamat');
+    if (el) el.innerText = cfg.alamat_kantor;
+  }
+
+  if (cfg.email_kontak) {
+    const el = document.getElementById('footerEmail');
+    if (el) el.innerText = cfg.email_kontak;
+  }
+
+  // Update Dynamic Logos
+  if (cfg.logo_utama_url) {
+    const logos = ['navLogoUtama', 'footerLogo', 'adminSideLogo', 'prevLogoUtama', 'pdfKopLogoUtama'];
+    logos.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.src = cfg.logo_utama_url;
+    });
+  }
+
+  if (cfg.logo_pemkab_url) {
+    const logos = ['navLogoPemkab', 'prevLogoPemkab', 'pdfKopLogoPemkab'];
+    logos.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.src = cfg.logo_pemkab_url;
+    });
+  }
+
+  // Isi Form Pengaturan (Admin)
+  if (document.getElementById('cfgAppName')) {
+    document.getElementById('cfgAppName').value = cfg.app_name || '';
+    document.getElementById('cfgAppTagline').value = cfg.app_tagline || '';
+    document.getElementById('cfgLogoUtama').value = cfg.logo_utama_url || '';
+    document.getElementById('cfgLogoPemkab').value = cfg.logo_pemkab_url || '';
+    document.getElementById('cfgNamaKadis').value = cfg.nama_kadis || '';
+    document.getElementById('cfgNipKadis').value = cfg.nip_kadis || '';
+    document.getElementById('cfgNamaKabid').value = cfg.nama_kabid_dikdas || '';
+    document.getElementById('cfgNipKabid').value = cfg.nip_kabid_dikdas || '';
+  }
+
+  // Signer di PDF Preview
+  if (cfg.nama_kabid_dikdas && document.getElementById('pdfNamaSigner')) {
+    document.getElementById('pdfNamaSigner').innerText = cfg.nama_kabid_dikdas;
+  }
+  if (cfg.nip_kabid_dikdas && document.getElementById('pdfNipSigner')) {
+    document.getElementById('pdfNipSigner').innerText = "NIP. " + cfg.nip_kabid_dikdas;
+  }
+}
+
+function handleSaveConfig(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btnSaveConfig');
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Menyimpan...`;
+
+  const payload = {
+    app_name: document.getElementById('cfgAppName').value,
+    app_tagline: document.getElementById('cfgAppTagline').value,
+    logo_utama_url: document.getElementById('cfgLogoUtama').value,
+    logo_pemkab_url: document.getElementById('cfgLogoPemkab').value,
+    nama_kadis: document.getElementById('cfgNamaKadis').value,
+    nip_kadis: document.getElementById('cfgNipKadis').value,
+    nama_kabid_dikdas: document.getElementById('cfgNamaKabid').value,
+    nip_kabid_dikdas: document.getElementById('cfgNipKabid').value
+  };
+
+  google.script.run
+    .withSuccessHandler(res => {
+      btn.disabled = false;
+      btn.innerHTML = `<span>SIMPAN SEMUA PENGATURAN</span><span class="arrow-icon-circle">↗</span>`;
+      if (res.success) {
+        alert(res.message);
+        loadConfig(); // Refresh data seketika
+      } else {
+        alert("Gagal: " + res.message);
+      }
+    })
+    .withFailureHandler(err => {
+      btn.disabled = false;
+      btn.innerHTML = `<span>SIMPAN SEMUA PENGATURAN</span><span class="arrow-icon-circle">↗</span>`;
+      alert("Error: " + err.toString());
+    })
+    .updateAppConfig(payload);
+}
+
+function uploadLogoFile(inputEl, targetFieldId) {
+  const file = inputEl.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64 = e.target.result;
+    const originalText = inputEl.previousElementSibling.innerText;
+    inputEl.previousElementSibling.innerText = "Mengunggah...";
+
+    google.script.run
+      .withSuccessHandler(res => {
+        inputEl.previousElementSibling.innerText = "Upload File";
+        if (res.success) {
+          document.getElementById(targetFieldId).value = res.directUrl;
+          // Trigger live preview
+          if (targetFieldId === 'cfgLogoUtama') document.getElementById('prevLogoUtama').src = res.directUrl;
+          if (targetFieldId === 'cfgLogoPemkab') document.getElementById('prevLogoPemkab').src = res.directUrl;
+          alert("Logo berhasil diunggah ke Google Drive!");
+        } else {
+          alert("Gagal upload: " + res.message);
+        }
+      })
+      .withFailureHandler(err => {
+        inputEl.previousElementSibling.innerText = "Upload File";
+        alert("Error upload: " + err.toString());
+      })
+      .uploadFileToDrive(base64, file.name, file.type, 'logo');
+  };
+  reader.readAsDataURL(file);
+}
+
+/**
+ * ============================================================================
+ * 2. AUTENTIKASI SINGLE ADMIN & ROUTING VIEW
+ * ============================================================================
+ */
+function openLoginModal() {
+  const modal = new bootstrap.Modal(document.getElementById('modalLogin'));
+  modal.show();
+}
+
+function handleLoginAdmin(e) {
+  e.preventDefault();
+  const u = document.getElementById('loginUsername').value;
+  const p = document.getElementById('loginPassword').value;
+  const btn = document.getElementById('btnLoginSubmit');
+
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Mengotentikasi...`;
+
+  google.script.run
+    .withSuccessHandler(res => {
+      btn.disabled = false;
+      btn.innerHTML = `<span>MASUK KE SISTEM</span><span class="arrow-icon-circle">↗</span>`;
+      if (res.success) {
+        currentAdminUser = res.data;
+        sessionStorage.setItem('SI_DIKDAS_ADMIN_SESSION', JSON.stringify(res.data));
+        bootstrap.Modal.getInstance(document.getElementById('modalLogin')).hide();
+        
+        // Buka Portal Admin
+        document.getElementById('txtAdminNama').innerText = res.data.nama;
+        showSection('admin-view');
+        loadAdminData();
+      } else {
+        alert(res.message);
+      }
+    })
+    .withFailureHandler(err => {
+      btn.disabled = false;
+      btn.innerHTML = `<span>MASUK KE SISTEM</span><span class="arrow-icon-circle">↗</span>`;
+      alert("Error: " + err.toString());
+    })
+    .loginAdmin(u, p);
+}
+
+function checkStoredAdminSession() {
+  const stored = sessionStorage.getItem('SI_DIKDAS_ADMIN_SESSION');
+  if (stored) {
+    try {
+      currentAdminUser = JSON.parse(stored);
+      document.getElementById('txtAdminNama').innerText = currentAdminUser.nama;
+    } catch (e) {
+      sessionStorage.removeItem('SI_DIKDAS_ADMIN_SESSION');
+    }
+  }
+}
+
+function logoutAdmin() {
+  if (confirm("Apakah Anda yakin ingin keluar dari Portal Admin?")) {
+    sessionStorage.removeItem('SI_DIKDAS_ADMIN_SESSION');
+    currentAdminUser = null;
+    showSection('public-view');
+  }
+}
+
+function showSection(sectionId) {
+  const pub = document.getElementById('public-view');
+  const adm = document.getElementById('admin-view');
+
+  if (sectionId === 'admin-view') {
+    if (!currentAdminUser) {
+      openLoginModal();
+      return;
+    }
+    pub.classList.add('d-none');
+    adm.classList.remove('d-none');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    adm.classList.add('d-none');
+    pub.classList.remove('d-none');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function switchAdminTab(tabId) {
+  document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.add('d-none'));
+  document.querySelectorAll('.admin-menu-item').forEach(el => el.classList.remove('active'));
+
+  const target = document.getElementById(tabId);
+  if (target) target.classList.remove('d-none');
+
+  // Set active class on menu item
+  const menus = document.querySelectorAll('.admin-menu-item');
+  if (tabId === 'tab-dashboard') menus[0].classList.add('active');
+  if (tabId === 'tab-bosp') menus[1].classList.add('active');
+  if (tabId === 'tab-sarpras') menus[2].classList.add('active');
+  if (tabId === 'tab-pengaturan') menus[3].classList.add('active');
+}
+
+/**
+ * ============================================================================
+ * 3. CEK PIP PUBLIK VIA NISN
+ * ============================================================================
+ */
+let currentPipResult = null;
+
+function handleCekPip(e) {
+  e.preventDefault();
+  const nisn = document.getElementById('inputNisn').value;
+  const tahun = document.getElementById('selectTahunPip').value;
+  const loading = document.getElementById('pipLoading');
+  const resultBox = document.getElementById('pipResultBox');
+
+  loading.classList.remove('d-none');
+  resultBox.classList.add('d-none');
+
+  google.script.run
+    .withSuccessHandler(res => {
+      loading.classList.add('d-none');
+      if (res.success && res.data) {
+        currentPipResult = res.data;
+        document.getElementById('pipBadgeStatus').innerText = res.data.status.toUpperCase();
+        document.getElementById('pipTahunText').innerText = "TA " + res.data.tahun;
+        document.getElementById('pipNamaSiswa').innerText = res.data.nama_siswa;
+        document.getElementById('pipSekolahText').innerText = `${res.data.nama_sekolah} (${res.data.jenjang} - ${res.data.kelas}) • Kec. ${res.data.kecamatan}`;
+        document.getElementById('pipNominal').innerText = "Rp " + Number(res.data.nominal).toLocaleString('id-ID');
+        document.getElementById('pipBank').innerText = res.data.bank;
+        document.getElementById('pipKeterangan').innerText = res.data.keterangan || "Dana beasiswa resmi PIP.";
+        resultBox.classList.remove('d-none');
+      } else {
+        alert(res.message || "Data siswa tidak ditemukan.");
+      }
+    })
+    .withFailureHandler(err => {
+      loading.classList.add('d-none');
+      alert("Gagal mencari data: " + err.toString());
+    })
+    .checkPipStatusPublic(nisn, tahun);
+}
+
+function printPipSlip() {
+  if (!currentPipResult) return;
+  const d = currentPipResult;
+
+  const html = `
+    <table class="table table-bordered">
+      <tr><th style="width: 35%;">Nama Lengkap Siswa</th><td><strong>${d.nama_siswa}</strong></td></tr>
+      <tr><th>Nomor Induk Siswa Nasional (NISN)</th><td>${d.nisn}</td></tr>
+      <tr><th>Asal Sekolah / Jenjang</th><td>${d.nama_sekolah} (${d.jenjang})</td></tr>
+      <tr><th>Kelas / Rombongan Belajar</th><td>${d.kelas}</td></tr>
+      <tr><th>Kecamatan</th><td>${d.kecamatan}</td></tr>
+      <tr><th>Besaran Bantuan</th><td><strong class="text-success">Rp ${Number(d.nominal).toLocaleString('id-ID')}</strong></td></tr>
+      <tr><th>Status Pencairan</th><td><span class="badge bg-success">${d.status}</span></td></tr>
+      <tr><th>Bank Penyalur</th><td>${d.bank}</td></tr>
+      <tr><th>Catatan Tambahan</th><td>${d.keterangan}</td></tr>
+    </table>
+    <div class="alert alert-warning py-2 small mt-2">
+      Lembar ini merupakan bukti verifikasi resmi portal SI-DIKDAS Dinas Pendidikan dan Kebudayaan Kabupaten Konawe Utara. Bawa lembar ini bersama KTP orang tua dan buku tabungan SimPel ke kantor cabang bank terdekat.
+    </div>
+  `;
+
+  document.getElementById('pdfDocTitle').innerText = "BUKTI PENYALURAN PROGRAM INDONESIA PINTAR (PIP)";
+  document.getElementById('pdfDocSubtitle').innerText = "TAHUN ANGGARAN " + d.tahun;
+  document.getElementById('pdfTableContainer').innerHTML = html;
+
+  new bootstrap.Modal(document.getElementById('modalPrintPdf')).show();
+}
+
+/**
+ * ============================================================================
+ * 4. FORMULIR USULAN SARPRAS MANDIRI PUBLIK
+ * ============================================================================
+ */
+function handleSarprasPublik(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btnSubmitSarpras');
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Mengirim data...`;
+
+  const fileInput = document.getElementById('pubSarprasFile');
+  const payload = {
+    npsn: document.getElementById('pubSarprasNpsn').value,
+    nama_sekolah: document.getElementById('pubSarprasNamaSekolah').value,
+    kecamatan: document.getElementById('pubSarprasKecamatan').value,
+    jenis_fasilitas: document.getElementById('pubSarprasFasilitas').value,
+    kondisi: document.getElementById('pubSarprasKondisi').value,
+    jumlah_unit: document.getElementById('pubSarprasUnit').value,
+    kebutuhan_penanganan: document.getElementById('pubSarprasKebutuhan').value,
+    estimasi_biaya: document.getElementById('pubSarprasBiaya').value,
+    kontak_pengusul: document.getElementById('pubSarprasKontak').value,
+    foto_sarpras_url: ''
+  };
+
+  const submitFinal = () => {
+    google.script.run
+      .withSuccessHandler(res => {
+        btn.disabled = false;
+        btn.innerHTML = `<span>KIRIM USULAN KERUSAKAN</span><span class="arrow-icon-circle">↗</span>`;
+        if (res.success) {
+          alert(res.message);
+          document.getElementById('formSarprasPublik').reset();
+        } else {
+          alert("Gagal: " + res.message);
+        }
+      })
+      .withFailureHandler(err => {
+        btn.disabled = false;
+        btn.innerHTML = `<span>KIRIM USULAN KERUSAKAN</span><span class="arrow-icon-circle">↗</span>`;
+        alert("Error: " + err.toString());
+      })
+      .submitPublicSarprasReport(payload);
+  };
+
+  if (fileInput.files && fileInput.files[0]) {
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      google.script.run
+        .withSuccessHandler(uploadRes => {
+          if (uploadRes.success) {
+            payload.foto_sarpras_url = uploadRes.directUrl;
+          }
+          submitFinal();
+        })
+        .withFailureHandler(err => {
+          console.warn("Foto gagal upload, lanjut submit data:", err);
+          submitFinal();
+        })
+        .uploadFileToDrive(evt.target.result, file.name, file.type, 'sarpras');
+    };
+    reader.readAsDataURL(file);
+  } else {
+    submitFinal();
+  }
+}
+
+/**
+ * ============================================================================
+ * 5. GRAFIK DASHBOARD ANALYTICS (CHART.JS)
+ * ============================================================================
+ */
+function loadAnalytics() {
+  google.script.run
+    .withSuccessHandler(res => {
+      if (res && res.success && res.data) {
+        renderCharts(res.data);
+      }
+    })
+    .withFailureHandler(err => console.error("Gagal load analytics:", err))
+    .getDashboardAnalytics();
+}
+
+function renderCharts(data) {
+  // Update Ringkasan Angka
+  if (data.summary) {
+    if (document.getElementById('dashBospTotal')) {
+      document.getElementById('dashBospTotal').innerText = "Rp " + (data.summary.totalBosp / 1000000000).toFixed(2) + " M";
+    }
+    if (document.getElementById('dashPipTotal')) {
+      document.getElementById('dashPipTotal').innerText = data.summary.totalPip + " Siswa";
+    }
+    if (document.getElementById('dashSarprasTotal')) {
+      document.getElementById('dashSarprasTotal').innerText = data.summary.totalSarpras + " Usulan";
+    }
+  }
+
+  // 1. Chart BOSP per Kecamatan
+  const ctxBosp = document.getElementById('chartBospKecamatan');
+  if (ctxBosp && data.charts && data.charts.bospKecamatan) {
+    const labels = Object.keys(data.charts.bospKecamatan);
+    const values = Object.values(data.charts.bospKecamatan).map(v => (v / 1000000000).toFixed(2));
+
+    if (chartBospInstance) chartBospInstance.destroy();
+    chartBospInstance = new Chart(ctxBosp, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Alokasi BOSP (Miliar Rp)',
+          data: values,
+          backgroundColor: '#0080E6',
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  // 2. Chart Kondisi Sarpras (Pie / Donut)
+  const ctxSarpras = document.getElementById('chartSarprasKondisi');
+  if (ctxSarpras && data.charts && data.charts.sarprasKondisi) {
+    const labels = Object.keys(data.charts.sarprasKondisi);
+    const values = Object.values(data.charts.sarprasKondisi);
+
+    if (chartSarprasInstance) chartSarprasInstance.destroy();
+    chartSarprasInstance = new Chart(ctxSarpras, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: values,
+          backgroundColor: ['#10B981', '#FBBF24', '#F59E0B', '#EF4444'],
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom' }
+        }
+      }
+    });
+  }
+}
+
+/**
+ * ============================================================================
+ * 6. CRUD & EKSPOR BOSP (ADMIN)
+ * ============================================================================
+ */
+function loadAdminData() {
+  loadBospTable();
+  loadSarprasTable();
+  loadAnalytics();
+}
+
+function loadBospTable() {
+  const tbody = document.getElementById('tbodyBosp');
+  tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4"><span class="spinner-border spinner-border-sm me-2 text-primary"></span>Memuat data BOSP...</td></tr>`;
+
+  google.script.run
+    .withSuccessHandler(res => {
+      if (res.success) {
+        bospDataCache = res.data;
+        if (bospDataCache.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">Belum ada data penyaluran BOSP.</td></tr>`;
+          return;
+        }
+
+        let html = '';
+        bospDataCache.forEach((row, idx) => {
+          const nominalRp = Number(row.alokasi_dana).toLocaleString('id-ID');
+          const statusSalurBadge = row.status_salur === 'Tersalurkan' ? 'status-success' : 'status-warning';
+          const statusSpjBadge = (row.catatan_spj || '').includes('Lengkap') ? 'status-success' : 'status-warning';
+
+          html += `
+            <tr>
+              <td>${idx + 1}</td>
+              <td class="fw-semibold text-primary">${row.npsn}</td>
+              <td class="fw-bold">${row.nama_sekolah}</td>
+              <td><span class="badge bg-secondary-subtle text-secondary">${row.jenjang}</span></td>
+              <td>${row.kecamatan}</td>
+              <td class="fw-bold text-success">Rp ${nominalRp}</td>
+              <td><span class="status-pill ${statusSalurBadge}">${row.status_salur}</span></td>
+              <td><span class="status-pill ${statusSpjBadge}">${row.catatan_spj || 'Menunggu'}</span></td>
+              <td>
+                <button class="btn btn-sm btn-outline-primary rounded-circle" onclick="editBosp(${row.rowIndex})" title="Edit Data"><i class="fa-solid fa-pen-to-square"></i></button>
+                <button class="btn btn-sm btn-outline-danger rounded-circle ms-1" onclick="deleteBosp(${row.rowIndex})" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+              </td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = html;
+      }
+    })
+    .getAllBospData();
+}
+
+function openModalBosp(record) {
+  document.getElementById('formInputBosp').reset();
+  document.getElementById('bospRowIndex').value = '';
+  document.getElementById('bospId').value = '';
+  document.getElementById('titleModalBosp').innerText = "Input Penyaluran Dana BOSP";
+
+  if (record) {
+    document.getElementById('titleModalBosp').innerText = "Edit Data Penyaluran BOSP";
+    document.getElementById('bospRowIndex').value = record.rowIndex;
+    document.getElementById('bospId').value = record.id_bosp;
+    document.getElementById('bospTahun').value = record.tahun;
+    document.getElementById('bospTahap').value = record.tahap;
+    document.getElementById('bospNpsn').value = record.npsn;
+    document.getElementById('bospSekolah').value = record.nama_sekolah;
+    document.getElementById('bospJenjang').value = record.jenjang;
+    document.getElementById('bospKecamatan').value = record.kecamatan;
+    document.getElementById('bospNominal').value = record.alokasi_dana;
+    document.getElementById('bospStatusSalur').value = record.status_salur;
+    document.getElementById('bospCatatanSpj').value = record.catatan_spj;
+  }
+  new bootstrap.Modal(document.getElementById('modalInputBosp')).show();
+}
+
+function editBosp(rowIndex) {
+  const item = bospDataCache.find(r => r.rowIndex === rowIndex);
+  if (item) openModalBosp(item);
+}
+
+function handleSaveBosp(e) {
+  e.preventDefault();
+  const payload = {
+    rowIndex: document.getElementById('bospRowIndex').value,
+    id_bosp: document.getElementById('bospId').value,
+    tahun: document.getElementById('bospTahun').value,
+    tahap: document.getElementById('bospTahap').value,
+    npsn: document.getElementById('bospNpsn').value,
+    nama_sekolah: document.getElementById('bospSekolah').value,
+    jenjang: document.getElementById('bospJenjang').value,
+    kecamatan: document.getElementById('bospKecamatan').value,
+    alokasi_dana: document.getElementById('bospNominal').value,
+    status_salur: document.getElementById('bospStatusSalur').value,
+    catatan_spj: document.getElementById('bospCatatanSpj').value,
+    tgl_cair: UtilitiesToday()
+  };
+
+  google.script.run
+    .withSuccessHandler(res => {
+      if (res.success) {
+        bootstrap.Modal.getInstance(document.getElementById('modalInputBosp')).hide();
+        loadBospTable();
+        loadAnalytics();
+      } else {
+        alert("Gagal: " + res.message);
+      }
+    })
+    .saveBospRecord(payload);
+}
+
+function deleteBosp(rowIndex) {
+  if (confirm("Apakah Anda yakin ingin menghapus data BOSP ini?")) {
+    google.script.run
+      .withSuccessHandler(res => {
+        if (res.success) {
+          loadBospTable();
+          loadAnalytics();
+        } else {
+          alert("Gagal menghapus: " + res.message);
+        }
+      })
+      .deleteBospRecord(rowIndex);
+  }
+}
+
+// Ekspor Excel BOSP (SheetJS)
+function exportBospToExcel() {
+  if (bospDataCache.length === 0) {
+    alert("Data BOSP kosong.");
+    return;
+  }
+
+  const exportData = bospDataCache.map((r, i) => ({
+    "No": i + 1,
+    "Tahun": r.tahun,
+    "Tahap": r.tahap,
+    "NPSN": r.npsn,
+    "Nama Sekolah": r.nama_sekolah,
+    "Jenjang": r.jenjang,
+    "Kecamatan": r.kecamatan,
+    "Alokasi Dana (Rp)": r.alokasi_dana,
+    "Status Salur": r.status_salur,
+    "Catatan SPJ": r.catatan_spj
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(exportData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Rekap_BOSP_2026");
+  XLSX.writeFile(wb, "Rekap_Penyaluran_BOSP_Konawe_Utara.xlsx");
+}
+
+// Cetak Laporan PDF BOSP Ber-Kop
+function previewBospPdf() {
+  if (bospDataCache.length === 0) {
+    alert("Tidak ada data BOSP untuk dicetak.");
+    return;
+  }
+
+  let tableHtml = `
+    <table class="table table-bordered table-sm text-center">
+      <thead class="table-light">
+        <tr>
+          <th>No</th>
+          <th>NPSN</th>
+          <th>Nama Sekolah</th>
+          <th>Jenjang</th>
+          <th>Kecamatan</th>
+          <th>Alokasi Dana (Rp)</th>
+          <th>Status Salur</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  let totalAll = 0;
+  bospDataCache.forEach((r, idx) => {
+    totalAll += Number(r.alokasi_dana) || 0;
+    tableHtml += `
+      <tr>
+        <td>${idx + 1}</td>
+        <td>${r.npsn}</td>
+        <td class="text-start">${r.nama_sekolah}</td>
+        <td>${r.jenjang}</td>
+        <td>${r.kecamatan}</td>
+        <td class="text-end">${Number(r.alokasi_dana).toLocaleString('id-ID')}</td>
+        <td>${r.status_salur}</td>
+      </tr>
+    `;
+  });
+
+  tableHtml += `
+      <tr class="fw-bold table-light">
+        <td colspan="5" class="text-end">TOTAL KESELURUHAN REALISASI:</td>
+        <td class="text-end">Rp ${totalAll.toLocaleString('id-ID')}</td>
+        <td>-</td>
+      </tr>
+    </tbody>
+  </table>
+  `;
+
+  document.getElementById('pdfDocTitle').innerText = "REKAPITULASI REALISASI DANA BOSP SD & SMP";
+  document.getElementById('pdfDocSubtitle').innerText = "KABUPATEN KONAWE UTARA - TAHUN ANGGARAN 2026";
+  document.getElementById('pdfTableContainer').innerHTML = tableHtml;
+
+  new bootstrap.Modal(document.getElementById('modalPrintPdf')).show();
+}
+
+/**
+ * ============================================================================
+ * 7. CRUD & EKSPOR SARPRAS (ADMIN)
+ * ============================================================================
+ */
+function loadSarprasTable() {
+  const tbody = document.getElementById('tbodySarpras');
+  tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4"><span class="spinner-border spinner-border-sm me-2 text-warning"></span>Memuat data Sarpras...</td></tr>`;
+
+  google.script.run
+    .withSuccessHandler(res => {
+      if (res.success) {
+        sarprasDataCache = res.data;
+        if (sarprasDataCache.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" class="text-center py-4 text-muted">Belum ada usulan sarpras.</td></tr>`;
+          return;
+        }
+
+        let html = '';
+        sarprasDataCache.forEach((row, idx) => {
+          const biayaRp = Number(row.estimasi_biaya).toLocaleString('id-ID');
+          const kondisiBadge = row.kondisi === 'Rusak Berat' ? 'status-danger' :
+                               row.kondisi === 'Rusak Sedang' ? 'status-warning' : 'status-success';
+
+          html += `
+            <tr>
+              <td>${idx + 1}</td>
+              <td>
+                <div class="fw-bold">${row.nama_sekolah}</div>
+                <small class="text-muted">NPSN: ${row.npsn}</small>
+              </td>
+              <td>${row.kecamatan}</td>
+              <td class="fw-semibold">${row.jenis_fasilitas}</td>
+              <td><span class="status-pill ${kondisiBadge}">${row.kondisi}</span></td>
+              <td>${row.jumlah_unit} Unit</td>
+              <td class="fw-bold text-dark">Rp ${biayaRp}</td>
+              <td>
+                <select class="form-select form-select-sm" onchange="changeSarprasStatus(${row.rowIndex}, this.value)">
+                  <option value="Menunggu Verifikasi" ${row.status_usulan === 'Menunggu Verifikasi' ? 'selected' : ''}>Menunggu</option>
+                  <option value="Rekomendasi DAK Fisik 2027" ${row.status_usulan === 'Rekomendasi DAK Fisik 2027' ? 'selected' : ''}>DAK Fisik</option>
+                  <option value="Prioritas APBD Perubahan" ${row.status_usulan === 'Prioritas APBD Perubahan' ? 'selected' : ''}>APBD</option>
+                  <option value="Perlu Survey Lapangan" ${row.status_usulan === 'Perlu Survey Lapangan' ? 'selected' : ''}>Survey</option>
+                  <option value="Selesai Direhab" ${row.status_usulan === 'Selesai Direhab' ? 'selected' : ''}>Selesai</option>
+                </select>
+              </td>
+              <td>
+                ${row.foto_sarpras_url ? `<a href="${row.foto_sarpras_url}" target="_blank" class="btn btn-sm btn-outline-info rounded-circle" title="Lihat Foto"><i class="fa-solid fa-image"></i></a>` : ''}
+              </td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = html;
+      }
+    })
+    .getAllSarprasData();
+}
+
+function changeSarprasStatus(rowIndex, newStatus) {
+  google.script.run
+    .withSuccessHandler(res => {
+      if (res.success) {
+        loadAnalytics();
+      } else {
+        alert("Gagal update status: " + res.message);
+      }
+    })
+    .updateSarprasStatus(rowIndex, newStatus);
+}
+
+function openModalSarpras() {
+  document.getElementById('formAdminSarpras').reset();
+  new bootstrap.Modal(document.getElementById('modalInputSarpras')).show();
+}
+
+function handleSaveSarprasAdmin(e) {
+  e.preventDefault();
+  const payload = {
+    npsn: document.getElementById('admSarNpsn').value,
+    nama_sekolah: document.getElementById('admSarSekolah').value,
+    kecamatan: document.getElementById('admSarKecamatan').value,
+    jenis_fasilitas: document.getElementById('admSarFasilitas').value,
+    kondisi: document.getElementById('admSarKondisi').value,
+    jumlah_unit: document.getElementById('admSarUnit').value,
+    estimasi_biaya: document.getElementById('admSarBiaya').value,
+    kebutuhan_penanganan: document.getElementById('admSarKebutuhan').value,
+    status_usulan: document.getElementById('admSarStatus').value,
+    tgl_pendataan: UtilitiesToday()
+  };
+
+  google.script.run
+    .withSuccessHandler(res => {
+      if (res.success) {
+        bootstrap.Modal.getInstance(document.getElementById('modalInputSarpras')).hide();
+        loadSarprasTable();
+        loadAnalytics();
+      } else {
+        alert("Gagal: " + res.message);
+      }
+    })
+    .saveSarprasRecord(payload);
+}
+
+// Ekspor Excel Sarpras (SheetJS)
+function exportSarprasToExcel() {
+  if (sarprasDataCache.length === 0) {
+    alert("Data Sarpras kosong.");
+    return;
+  }
+
+  const exportData = sarprasDataCache.map((r, i) => ({
+    "No": i + 1,
+    "NPSN": r.npsn,
+    "Nama Sekolah": r.nama_sekolah,
+    "Kecamatan": r.kecamatan,
+    "Jenis Fasilitas": r.jenis_fasilitas,
+    "Kondisi": r.kondisi,
+    "Jumlah Unit": r.jumlah_unit,
+    "Kebutuhan Penanganan": r.kebutuhan_penanganan,
+    "Estimasi Biaya (Rp)": r.estimasi_biaya,
+    "Status Usulan": r.status_usulan
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(exportData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Rekap_Sarpras_2026");
+  XLSX.writeFile(wb, "Rekap_Sarpras_Dikdas_Konawe_Utara.xlsx");
+}
+
+// Cetak Laporan PDF Sarpras
+function previewSarprasPdf() {
+  if (sarprasDataCache.length === 0) {
+    alert("Tidak ada data Sarpras untuk dicetak.");
+    return;
+  }
+
+  let tableHtml = `
+    <table class="table table-bordered table-sm text-center">
+      <thead class="table-light">
+        <tr>
+          <th>No</th>
+          <th>Nama Sekolah</th>
+          <th>Kecamatan</th>
+          <th>Fasilitas</th>
+          <th>Kondisi</th>
+          <th>Unit</th>
+          <th>Estimasi Biaya</th>
+          <th>Status Usulan</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  let totalRAB = 0;
+  sarprasDataCache.forEach((r, idx) => {
+    totalRAB += Number(r.estimasi_biaya) || 0;
+    tableHtml += `
+      <tr>
+        <td>${idx + 1}</td>
+        <td class="text-start">${r.nama_sekolah}</td>
+        <td>${r.kecamatan}</td>
+        <td>${r.jenis_fasilitas}</td>
+        <td>${r.kondisi}</td>
+        <td>${r.jumlah_unit}</td>
+        <td class="text-end">${Number(r.estimasi_biaya).toLocaleString('id-ID')}</td>
+        <td>${r.status_usulan}</td>
+      </tr>
+    `;
+  });
+
+  tableHtml += `
+      <tr class="fw-bold table-light">
+        <td colspan="6" class="text-end">TOTAL KEBUTUHAN ESTIMASI DAK/APBD:</td>
+        <td class="text-end">Rp ${totalRAB.toLocaleString('id-ID')}</td>
+        <td>-</td>
+      </tr>
+    </tbody>
+  </table>
+  `;
+
+  document.getElementById('pdfDocTitle').innerText = "REKAPITULASI PENDATAAN & USULAN REHABILITASI SARPRAS SEKOLAH";
+  document.getElementById('pdfDocSubtitle').innerText = "KABUPATEN KONAWE UTARA - TAHUN ANGGARAN 2026";
+  document.getElementById('pdfTableContainer').innerHTML = tableHtml;
+
+  new bootstrap.Modal(document.getElementById('modalPrintPdf')).show();
+}
+
+/**
+ * Helper: Format Tanggal Hari Ini
+ */
+function UtilitiesToday() {
+  const d = new Date();
+  return d.toISOString().split('T')[0];
+}
+</script>
