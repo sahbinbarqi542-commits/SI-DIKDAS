@@ -16,6 +16,10 @@ let appConfigCache = null;
 let bospCache = [];
 let pipCache = [];
 let sarprasCache = [];
+let ruangBelajarCache = [];
+let activeRbCategory = 'Semua';
+let daftarSekolahCache = [];
+let sekolahPerKecamatanCache = {};
 let chartBospObj = null;
 let chartSarprasObj = null;
 
@@ -77,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function initApp() {
   await loadAppConfig();
   await loadDashboardAnalytics();
+  await loadRuangBelajar();
   setupEventListeners();
   checkAdminLoginStatus();
 }
@@ -100,7 +105,7 @@ function applyBranding(cfg) {
     document.querySelectorAll('.app-dinas-dynamic').forEach(el => el.innerText = cfg.nama_dinas);
   }
   if (cfg.hotline_wa) {
-    document.querySelectorAll('.app-hotline-dynamic').forEach(el => el.innerText = cfg.hotline_wa);
+    document.querySelectorAll('.app-hotline-dynamic').forEach(el => el.innerText = "Hotline: " + cfg.hotline_wa);
   }
   if (cfg.alamat_kantor) {
     document.querySelectorAll('.app-alamat-dynamic').forEach(el => el.innerText = cfg.alamat_kantor);
@@ -116,6 +121,12 @@ function applyBranding(cfg) {
   if (document.getElementById('inputCfgAppName')) {
     document.getElementById('inputCfgAppName').value = cfg.app_name || '';
     document.getElementById('inputCfgTagline').value = cfg.app_tagline || '';
+    if (document.getElementById('inputCfgHotline')) {
+      document.getElementById('inputCfgHotline').value = cfg.hotline_wa || '';
+    }
+    if (document.getElementById('inputCfgEmail')) {
+      document.getElementById('inputCfgEmail').value = cfg.email_dinas || 'dikdas@konaweutarakab.go.id';
+    }
     document.getElementById('inputCfgLogoUtama').value = cfg.logo_utama_url || '';
     document.getElementById('inputCfgLogoPemkab').value = cfg.logo_pemkab_url || '';
     document.getElementById('inputCfgNamaKabid').value = cfg.nama_kabid_dikdas || '';
@@ -234,115 +245,6 @@ async function finishSarprasSubmit(payload, btn) {
   }
 }
 
-let publicSarprasSearchResults = [];
-
-/**
- * 3B. CEK STATUS & VERIFIKASI USULAN SARPRAS (PUBLIK & SEKOLAH)
- */
-async function handleSarprasCheck(e) {
-  e.preventDefault();
-  const query = document.getElementById('sarprasQueryInput').value.trim();
-  const btn = document.getElementById('btnSubmitSarprasCheck');
-  const resBox = document.getElementById('sarprasCheckResultBox');
-  const countSpan = document.getElementById('sarprasResCount');
-  const listContainer = document.getElementById('sarprasResContentList');
-
-  if (!query) return;
-
-  btn.disabled = true;
-  btn.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> Memeriksa...`;
-
-  const res = await callGasApi('checkSarpras', { query });
-  btn.disabled = false;
-  btn.innerHTML = `<span class="material-symbols-outlined text-[20px]">fact_check</span><span>Cek Status Verifikasi</span>`;
-
-  resBox.classList.remove('hidden');
-
-  if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
-    publicSarprasSearchResults = res.data;
-    countSpan.innerText = `${res.data.length} Usulan Terdata`;
-    countSpan.className = "text-xs bg-emerald-500/30 text-emerald-200 border border-emerald-400/30 px-3 py-0.5 rounded-full font-bold";
-
-    let html = '';
-    res.data.forEach(item => {
-      let statusBadge = '';
-      if (item.status_usulan === 'Rekomendasi DAK Fisik 2027') {
-        statusBadge = `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-500/30 text-emerald-200 border border-emerald-400/40 text-xs font-bold"><span class="material-symbols-outlined text-[15px]">verified</span> Rekomendasi DAK Fisik 2027</span>`;
-      } else if (item.status_usulan === 'Prioritas APBD Perubahan') {
-        statusBadge = `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-sky-500/30 text-sky-200 border border-sky-400/40 text-xs font-bold"><span class="material-symbols-outlined text-[15px]">bookmark</span> Prioritas APBD Perubahan</span>`;
-      } else if (item.status_usulan === 'Selesai Direhab') {
-        statusBadge = `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-500/30 text-blue-200 border border-blue-400/40 text-xs font-bold"><span class="material-symbols-outlined text-[15px]">check_circle</span> Selesai Direhab</span>`;
-      } else if (item.status_usulan === 'Ditolak / Belum Memenuhi Kriteria') {
-        statusBadge = `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-rose-500/30 text-rose-200 border border-rose-400/40 text-xs font-bold"><span class="material-symbols-outlined text-[15px]">cancel</span> Belum Memenuhi Kriteria</span>`;
-      } else {
-        statusBadge = `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/30 text-amber-200 border border-amber-400/40 text-xs font-bold"><span class="material-symbols-outlined text-[15px]">hourglass_top</span> Menunggu Verifikasi Lapangan</span>`;
-      }
-
-      html += `
-        <div class="bg-white/10 rounded-2xl p-5 border border-white/20 text-white space-y-3">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/15 pb-3">
-            <div>
-              <div class="text-base font-extrabold text-white">${item.nama_sekolah || '-'}</div>
-              <div class="text-xs text-amber-200">NPSN: ${item.npsn || '-'} • Kec. ${item.kecamatan || '-'} • No. Usulan: <b>${item.id_sarpras || '-'}</b></div>
-            </div>
-            <div>${statusBadge}</div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <div class="bg-black/20 p-3 rounded-xl border border-white/10">
-              <span class="text-amber-200/80 block text-[11px] mb-0.5">Fasilitas & Kondisi:</span>
-              <span class="font-bold text-white text-sm">${item.jenis_fasilitas || '-'} (${item.jumlah_unit || 1} Unit)</span>
-              <div class="text-xs font-semibold ${item.kondisi === 'Rusak Berat' ? 'text-rose-300' : 'text-amber-300'} mt-0.5">${item.kondisi || 'Rusak Sedang'}</div>
-            </div>
-            <div class="bg-black/20 p-3 rounded-xl border border-white/10">
-              <span class="text-amber-200/80 block text-[11px] mb-0.5">Estimasi Kebutuhan RAB:</span>
-              <span class="font-extrabold text-white text-sm">Rp ${Number(item.estimasi_biaya || 0).toLocaleString('id-ID')}</span>
-              <div class="text-[11px] text-white/70 mt-0.5">Tgl: ${item.tgl_pendataan || '-'}</div>
-            </div>
-            <div class="bg-black/20 p-3 rounded-xl border border-white/10">
-              <span class="text-amber-200/80 block text-[11px] mb-0.5">Uraian Kebutuhan:</span>
-              <span class="font-medium text-white/90 line-clamp-2">${item.kebutuhan_penanganan || 'Perbaikan / Rehabilitasi Sarpras'}</span>
-            </div>
-          </div>
-
-          <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
-            <div>
-              ${item.foto_sarpras_url ? `<a href="${item.foto_sarpras_url}" target="_blank" class="inline-flex items-center gap-1.5 text-xs text-amber-300 hover:text-white underline"><span class="material-symbols-outlined text-[16px]">photo_camera</span><span>Lihat Lampiran Foto Kerusakan</span></a>` : ''}
-            </div>
-            <button type="button" onclick="printPublicSarprasSlip('${item.id_sarpras}')" class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 border border-white/30 transition-all shadow-sm active:scale-95">
-              <span class="material-symbols-outlined text-[16px]">print</span>
-              <span>Cetak Berita Acara / Surat Verifikasi</span>
-            </button>
-          </div>
-        </div>
-      `;
-    });
-    listContainer.innerHTML = html;
-  } else {
-    countSpan.innerText = "0 Usulan";
-    countSpan.className = "text-xs bg-rose-500/30 text-rose-200 border border-rose-400/30 px-3 py-0.5 rounded-full font-bold";
-    listContainer.innerHTML = `
-      <div class="p-6 text-center bg-black/20 rounded-2xl border border-white/10 text-white">
-        <span class="material-symbols-outlined text-4xl text-amber-300 mb-2">search_off</span>
-        <p class="font-bold text-sm">Usulan Sarpras Tidak Ditemukan</p>
-        <p class="text-xs text-amber-200/80 mt-1 max-w-md mx-auto">
-          Belum ada rekam data usulan sarpras dengan nomor registrasi atau NPSN "${query}". Pastikan NPSN sudah sesuai atau ajukan usulan baru di bawah.
-        </p>
-        <button type="button" onclick="openModal('modalSarprasPublic')" class="mt-4 px-5 py-2 bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold rounded-xl text-xs inline-flex items-center gap-1.5 shadow-md">
-          <span class="material-symbols-outlined text-[18px]">add_circle</span>
-          <span>Ajukan Usulan Kerusakan Sekolah Sekarang</span>
-        </button>
-      </div>
-    `;
-  }
-}
-
-function printPublicSarprasSlip(id) {
-  const item = publicSarprasSearchResults.find(x => String(x.id_sarpras) === String(id)) || sarprasCache.find(x => String(x.id_sarpras) === String(id));
-  if (!item) return alert("Data usulan tidak ditemukan.");
-  previewSarprasVerifikasiSlip(id, item);
-}
-
 /**
  * 4. ADMIN AUTHENTICATION (SINGLE ADMIN)
  */
@@ -416,6 +318,7 @@ function showAdminDashboard() {
   loadAdminBosp();
   loadAdminPip();
   loadAdminSarpras();
+  loadAdminRuangBelajar();
 }
 
 function switchAdminSubTab(tabId) {
@@ -604,22 +507,7 @@ async function deletePipItem(id) {
   }
 }
 
-// Sarpras Admin CRUD, Verifikasi, & Manual Input
-let currentSarprasFilter = 'all';
-
-function updatePendingSarprasBadge() {
-  const pendingCount = sarprasCache.filter(r => (r.status_usulan || '').trim() === 'Menunggu Verifikasi').length;
-  const badge = document.getElementById('badgePendingSarprasCount');
-  if (badge) {
-    badge.innerText = pendingCount;
-    if (pendingCount > 0) {
-      badge.classList.remove('hidden');
-    } else {
-      badge.classList.add('hidden');
-    }
-  }
-}
-
+// Sarpras Admin CRUD & Manual Input
 async function loadAdminSarpras() {
   const tbody = document.getElementById('tbodyAdminSarpras');
   tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-500">Memuat data Sarpras...</td></tr>`;
@@ -627,24 +515,12 @@ async function loadAdminSarpras() {
   const res = await callGasApi('getSarpras', { token: currentAdminToken });
   sarprasCache = (res && res.success && Array.isArray(res.data)) ? res.data : [];
 
-  updatePendingSarprasBadge();
-  renderSarprasTableData(currentSarprasFilter);
-}
-
-function renderSarprasTableData(filterStatus = 'all') {
-  const tbody = document.getElementById('tbodyAdminSarpras');
-  if (!tbody) return;
-
-  const displayList = filterStatus === 'all'
-    ? sarprasCache
-    : sarprasCache.filter(r => (r.status_usulan || '').trim() === filterStatus);
-
-  if (displayList.length === 0) {
+  if (sarprasCache.length === 0) {
     tbody.innerHTML = `
       <tr>
         <td colspan="8" class="text-center py-8 text-slate-400">
           <span class="material-symbols-outlined text-4xl block text-slate-300 mb-2">folder_open</span>
-          <p class="font-bold text-slate-600">${filterStatus === 'all' ? 'Belum ada data usulan / kondisi sarpras.' : 'Tidak ada usulan dengan status "' + filterStatus + '".'}</p>
+          <p class="font-bold text-slate-600">Belum ada data usulan / kondisi sarpras.</p>
           <p class="text-xs text-slate-400 mt-1">Silakan klik tombol <b>+ Input Sarpras Manual</b> di atas untuk menambahkan data.</p>
         </td>
       </tr>
@@ -653,182 +529,62 @@ function renderSarprasTableData(filterStatus = 'all') {
   }
 
   let html = '';
-  displayList.forEach((r, idx) => {
+  sarprasCache.forEach((r, idx) => {
+    const isAccepted = r.status_usulan === 'Berkas Diterima' || r.status_usulan?.includes('DAK') || r.status_usulan?.includes('APBD');
+    const isRejected = r.status_usulan === 'Berkas Ditolak';
     html += `
       <tr class="border-b hover:bg-slate-50">
         <td class="p-3 font-semibold text-center">${idx + 1}</td>
         <td class="p-3">
-          <div class="font-bold">${r.nama_sekolah || '-'}</div>
-          <div class="text-xs text-slate-400">NPSN: ${r.npsn || '-'} - Kec. ${r.kecamatan || '-'}</div>
+          <div class="font-bold text-slate-900">${r.nama_sekolah || '-'}</div>
+          <div class="text-[11px] text-slate-500 mt-0.5">NPSN: <span class="font-mono font-semibold">${r.npsn || '-'}</span> | Kec. ${r.kecamatan || '-'}</div>
         </td>
         <td class="p-3 font-medium">${r.jenis_fasilitas || '-'}</td>
         <td class="p-3"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${r.kondisi === 'Rusak Berat' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'}">${r.kondisi || 'Baik'}</span></td>
-        <td class="p-3 font-bold">Rp ${Number(r.estimasi_biaya || 0).toLocaleString('id-ID')}</td>
+        <td class="p-3 font-bold text-slate-900">Rp ${Number(r.estimasi_biaya || 0).toLocaleString('id-ID')}</td>
         <td class="p-3">
-          <select onchange="updateSarprasStatusAction('${r.id_sarpras}', this.value)" class="text-xs font-semibold p-1.5 border rounded-lg bg-white">
-            <option value="Menunggu Verifikasi" ${r.status_usulan === 'Menunggu Verifikasi' ? 'selected' : ''}>Menunggu Verifikasi</option>
-            <option value="Rekomendasi DAK Fisik 2027" ${r.status_usulan === 'Rekomendasi DAK Fisik 2027' ? 'selected' : ''}>DAK Fisik 2027</option>
-            <option value="Prioritas APBD Perubahan" ${r.status_usulan === 'Prioritas APBD Perubahan' ? 'selected' : ''}>APBD Perubahan</option>
-            <option value="Perbaikan Swakelola Sekolah (BOSP)" ${r.status_usulan === 'Perbaikan Swakelola Sekolah (BOSP)' ? 'selected' : ''}>Swakelola BOSP</option>
-            <option value="Ditolak / Belum Memenuhi Kriteria" ${r.status_usulan === 'Ditolak / Belum Memenuhi Kriteria' ? 'selected' : ''}>Ditolak</option>
-            <option value="Selesai Direhab" ${r.status_usulan === 'Selesai Direhab' ? 'selected' : ''}>Selesai</option>
-          </select>
+          <div class="space-y-1.5">
+            <div>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                isAccepted ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                isRejected ? 'bg-rose-100 text-rose-800 border border-rose-300' :
+                'bg-amber-100 text-amber-800 border border-amber-300'
+              }">${r.status_usulan || 'Menunggu Verifikasi'}</span>
+            </div>
+            <!-- Tombol Aksi Verifikasi: Berkas Diterima / Berkas Ditolak -->
+            <div class="flex items-center gap-1">
+              <button onclick="updateSarprasStatusAction('${r.id_sarpras}', 'Berkas Diterima')" title="Verifikasi Berkas Diterima" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2 py-0.5 rounded text-[10px] shadow-sm flex items-center gap-1 active:scale-95 transition-all">
+                <i class="fa-solid fa-check"></i> Berkas Diterima
+              </button>
+              <button onclick="updateSarprasStatusAction('${r.id_sarpras}', 'Berkas Ditolak')" title="Verifikasi Berkas Ditolak" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-2 py-0.5 rounded text-[10px] shadow-sm flex items-center gap-1 active:scale-95 transition-all">
+                <i class="fa-solid fa-xmark"></i> Berkas Ditolak
+              </button>
+            </div>
+            <div>
+              <select onchange="updateSarprasStatusAction('${r.id_sarpras}', this.value)" class="text-[11px] font-semibold p-1 border rounded-lg bg-white w-full focus:ring-1 focus:ring-amber-500">
+                <option value="Menunggu Verifikasi" ${r.status_usulan === 'Menunggu Verifikasi' ? 'selected' : ''}>Menunggu Verifikasi</option>
+                <option value="Berkas Diterima" ${r.status_usulan === 'Berkas Diterima' ? 'selected' : ''}>✅ Berkas Diterima</option>
+                <option value="Berkas Ditolak" ${r.status_usulan === 'Berkas Ditolak' ? 'selected' : ''}>❌ Berkas Ditolak</option>
+                <option value="Rekomendasi DAK Fisik 2027" ${r.status_usulan === 'Rekomendasi DAK Fisik 2027' ? 'selected' : ''}>⭐ Rekomendasi DAK Fisik 2027</option>
+                <option value="Prioritas APBD Perubahan" ${r.status_usulan === 'Prioritas APBD Perubahan' ? 'selected' : ''}>📌 Prioritas APBD Perubahan</option>
+                <option value="Selesai Direhab" ${r.status_usulan === 'Selesai Direhab' ? 'selected' : ''}>Selesai Direhab</option>
+              </select>
+            </div>
+          </div>
         </td>
         <td class="p-3 text-center">
           ${r.foto_sarpras_url ? `<a href="${r.foto_sarpras_url}" target="_blank" class="text-primary hover:underline text-xs"><span class="material-symbols-outlined text-[18px]">photo_camera</span></a>` : '-'}
         </td>
         <td class="p-3 text-center">
-          <div class="flex items-center justify-center gap-1">
-            <button onclick="openModalVerifikasiSarpras('${r.id_sarpras}')" title="Menu Verifikasi & Rekomendasi" class="px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold text-xs shadow-sm inline-flex items-center gap-1 active:scale-95 transition-all">
-              <span class="material-symbols-outlined text-[14px]">domain_verification</span>
-              <span>Verifikasi</span>
-            </button>
-            <button onclick="previewSarprasVerifikasiSlip('${r.id_sarpras}')" title="Cetak Berita Acara" class="p-1 text-slate-500 hover:text-primary rounded-lg hover:bg-slate-100">
-              <span class="material-symbols-outlined text-[18px]">print</span>
-            </button>
-            <button onclick="deleteSarprasItem('${r.id_sarpras}')" title="Hapus Data Sarpras" class="p-1 text-rose-600 hover:text-rose-800 rounded-lg hover:bg-rose-50 font-bold text-xs">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </div>
+          <button onclick="deleteSarprasItem('${r.id_sarpras}')" title="Hapus Data Sarpras" class="text-rose-600 hover:text-rose-800 font-bold text-xs p-1">
+            <i class="fa-solid fa-trash"></i>
+          </button>
         </td>
       </tr>
     `;
   });
   tbody.innerHTML = html;
 }
-
-function filterSarprasByStatus(status) {
-  currentSarprasFilter = status;
-  renderSarprasTableData(status);
-
-  const btnAll = document.getElementById('btnFilterSarprasAll');
-  const btnPending = document.getElementById('btnFilterSarprasPending');
-  if (status === 'all') {
-    if (btnAll) btnAll.className = "px-3 py-1.5 bg-primary text-white rounded-xl text-xs font-bold shadow-sm";
-    if (btnPending) btnPending.className = "px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-xl text-xs font-bold border border-amber-300 shadow-sm flex items-center gap-1";
-  } else {
-    if (btnAll) btnAll.className = "px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold border border-slate-300 shadow-sm";
-    if (btnPending) btnPending.className = "px-3 py-1.5 bg-amber-600 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1 ring-2 ring-amber-400";
-  }
-}
-
-function openModalVerifikasiSarpras(id) {
-  const item = sarprasCache.find(x => String(x.id_sarpras) === String(id));
-  if (!item) return alert("Data sarpras tidak ditemukan.");
-
-  document.getElementById('verifSarprasId').value = item.id_sarpras;
-  document.getElementById('verifIdNpsn').innerText = `${item.id_sarpras || '-'} / NPSN: ${item.npsn || '-'}`;
-  document.getElementById('verifNamaSekolah').innerText = item.nama_sekolah || '-';
-  document.getElementById('verifKecamatan').innerText = `Kecamatan ${item.kecamatan || '-'}`;
-  document.getElementById('verifFasilitasKondisi').innerText = `${item.jenis_fasilitas || '-'} (${item.jumlah_unit || 1} Unit) - Kondisi: ${item.kondisi || 'Rusak'}`;
-  document.getElementById('verifPenanganan').innerText = item.kebutuhan_penanganan || 'Rehabilitasi Fasilitas';
-  document.getElementById('verifRab').innerText = `Rp ${Number(item.estimasi_biaya || 0).toLocaleString('id-ID')}`;
-
-  const fotoContainer = document.getElementById('verifFotoContainer');
-  const fotoLink = document.getElementById('verifFotoLink');
-  if (item.foto_sarpras_url) {
-    fotoLink.href = item.foto_sarpras_url;
-    fotoContainer.classList.remove('hidden');
-  } else {
-    fotoContainer.classList.add('hidden');
-  }
-
-  document.getElementById('verifStatusDecision').value = item.status_usulan || 'Menunggu Verifikasi';
-  document.getElementById('modalVerifikasiSarpras').classList.remove('hidden');
-}
-
-async function handleSaveVerifikasiDecision(e) {
-  e.preventDefault();
-  const id = document.getElementById('verifSarprasId').value;
-  const status = document.getElementById('verifStatusDecision').value;
-  const btn = document.getElementById('btnSaveVerifDecision');
-
-  btn.disabled = true;
-  btn.innerHTML = `<span class="inline-block animate-spin mr-1">â³</span> Menyimpan...`;
-
-  const res = await callGasApi('updateSarprasStatus', { id, status }, true);
-  btn.disabled = false;
-  btn.innerHTML = `<span class="material-symbols-outlined text-[18px]">check_circle</span><span>Simpan Hasil Verifikasi</span>`;
-
-  if (res.success) {
-    const item = sarprasCache.find(x => String(x.id_sarpras) === String(id));
-    if (item) item.status_usulan = status;
-    renderSarprasTableData(currentSarprasFilter);
-    updatePendingSarprasBadge();
-    loadDashboardAnalytics();
-    closeModal('modalVerifikasiSarpras');
-    alert(`Verifikasi berhasil disimpan!\nStatus usulan kini menjadi: ${status}`);
-  } else {
-    alert("Gagal menyimpan verifikasi: " + res.message);
-  }
-}
-
-function previewCurrentVerifikasiSlip() {
-  const id = document.getElementById('verifSarprasId').value;
-  if (!id) return;
-  previewSarprasVerifikasiSlip(id);
-}
-
-function previewSarprasVerifikasiSlip(id, directItem = null) {
-  const item = directItem || sarprasCache.find(x => String(x.id_sarpras) === String(id));
-  if (!item) return alert("Data sarpras tidak ditemukan.");
-
-  const contentHtml = `
-    <div style="font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.6; color: #1e293b;">
-      <div style="text-align: center; margin-bottom: 20px;">
-        <h3 style="font-size: 13pt; font-weight: bold; margin: 0; text-decoration: underline;">BERITA ACARA VERIFIKASI KELAYAKAN SARANA &amp; PRASARANA</h3>
-        <p style="margin: 4px 0 0 0; font-size: 10pt; color: #475569;">Nomor Registrasi: <b>${item.id_sarpras || '-'}</b></p>
-      </div>
-
-      <p style="margin-bottom: 12px; text-align: justify;">
-        Pada hari ini, Tim Teknis Verifikasi Seksi Kelembagaan dan Sarana Prasarana Bidang Pembinaan Pendidikan Dasar Dinas Pendidikan dan Kebudayaan Kabupaten Konawe Utara telah melakukan verifikasi dokumen dan validasi kelayakan usulan fisik sekolah dengan rincian data sebagai berikut:
-      </p>
-
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 10pt;">
-        <tr>
-          <td style="width: 32%; padding: 7px; border: 1px solid #cbd5e1; font-weight: bold; background: #f8fafc;">Nama Satuan Pendidikan</td>
-          <td style="width: 68%; padding: 7px; border: 1px solid #cbd5e1;"><b>${item.nama_sekolah || '-'}</b></td>
-        </tr>
-        <tr>
-          <td style="padding: 7px; border: 1px solid #cbd5e1; font-weight: bold; background: #f8fafc;">NPSN / Wilayah Kecamatan</td>
-          <td style="padding: 7px; border: 1px solid #cbd5e1;">NPSN: ${item.npsn || '-'} â€¢ Kecamatan ${item.kecamatan || '-'}</td>
-        </tr>
-        <tr>
-          <td style="padding: 7px; border: 1px solid #cbd5e1; font-weight: bold; background: #f8fafc;">Jenis Objek &amp; Volume</td>
-          <td style="padding: 7px; border: 1px solid #cbd5e1;">${item.jenis_fasilitas || '-'} (Sebanyak ${item.jumlah_unit || 1} Unit)</td>
-        </tr>
-        <tr>
-          <td style="padding: 7px; border: 1px solid #cbd5e1; font-weight: bold; background: #f8fafc;">Tingkat Kerusakan Lapangan</td>
-          <td style="padding: 7px; border: 1px solid #cbd5e1; font-weight: bold; color: ${item.kondisi === 'Rusak Berat' ? '#b91c1c' : '#d97706'};">${item.kondisi || 'Rusak Sedang'}</td>
-        </tr>
-        <tr>
-          <td style="padding: 7px; border: 1px solid #cbd5e1; font-weight: bold; background: #f8fafc;">Uraian Rencana Penanganan</td>
-          <td style="padding: 7px; border: 1px solid #cbd5e1;">${item.kebutuhan_penanganan || 'Rehabilitasi ruang kelas / sarana penunjang'}</td>
-        </tr>
-        <tr>
-          <td style="padding: 7px; border: 1px solid #cbd5e1; font-weight: bold; background: #f8fafc;">Estimasi Kebutuhan RAB</td>
-          <td style="padding: 7px; border: 1px solid #cbd5e1; font-weight: bold; color: #0f172a;">Rp ${Number(item.estimasi_biaya || 0).toLocaleString('id-ID')}</td>
-        </tr>
-        <tr>
-          <td style="padding: 7px; border: 1px solid #cbd5e1; font-weight: bold; background: #f8fafc;">Status Keputusan Verifikasi</td>
-          <td style="padding: 7px; border: 1px solid #cbd5e1; font-weight: bold; font-size: 11pt; color: #0284c7;">
-            â­ ${item.status_usulan || 'Menunggu Verifikasi'}
-          </td>
-        </tr>
-      </table>
-
-      <div style="background: #f1f5f9; padding: 12px; border-left: 4px solid #0284c7; border-radius: 6px; margin-bottom: 24px; font-size: 10pt;">
-        <b>Catatan Resmi Tim Verifikator Disdikbud Konawe Utara:</b>
-        <p style="margin: 4px 0 0 0; color: #334155;">
-          Usulan telah diperiksa kesesuaiannya dengan Data Pokok Pendidikan (Dapodik) dan pertimbangan kelayakan teknis prasarana dasar. Rekomendasi di atas menjadi dasar acuan penyusunan Rencana Kerja Pemerintah Daerah (RKPD) dan usulan Dana Alokasi Khusus (DAK) Fisik Pendidikan.
-        </p>
-      </div>
-    </div>
-  `;
-
-  openPdfModal("BERITA ACARA VERIFIKASI SARANA &amp; PRASARANA", "DISDIKBUD KABUPATEN KONAWE UTARA - BIDANG PENDIDIKAN DASAR", contentHtml);
-}
-
 
 async function handleSaveSarprasAdmin(e) {
   e.preventDefault();
@@ -872,10 +628,12 @@ async function deleteSarprasItem(id) {
 
 async function updateSarprasStatusAction(id, status) {
   const res = await callGasApi('updateSarprasStatus', { id, status }, true);
-  if (res.success) {
+  if (res && res.success) {
+    alert(`Status Sarpras berhasil diubah: "${status}"`);
+    loadAdminSarpras();
     loadDashboardAnalytics();
   } else {
-    alert("Gagal update status: " + res.message);
+    alert("Gagal update status: " + (res.message || "Terjadi kesalahan"));
   }
 }
 
@@ -898,9 +656,12 @@ async function confirmClearAllData() {
     bospCache = [];
     pipCache = [];
     sarprasCache = [];
+    ruangBelajarCache = [];
     loadAdminBosp();
     loadAdminPip();
     loadAdminSarpras();
+    loadAdminRuangBelajar();
+    renderRuangBelajarPublic();
     loadDashboardAnalytics();
   } else {
     alert("Gagal mengosongkan data: " + ((res && res.message) ? res.message : 'Sesi tidak valid'));
@@ -1071,8 +832,74 @@ async function loadDashboardAnalytics() {
       document.getElementById('dashSekolahSummary').innerText = (d.totalSekolah || 0) + " Sekolah Terdata";
     }
 
+    // Cache dynamic school & kecamatan data
+    daftarSekolahCache = Array.isArray(d.daftarSekolah) ? d.daftarSekolah : [];
+    sekolahPerKecamatanCache = (typeof d.sekolahPerKecamatan === 'object' && d.sekolahPerKecamatan !== null) ? d.sekolahPerKecamatan : {};
+
+    // Update Section Kecamatan & Sekolah
+    if (document.getElementById('statSekolahDaftarCount')) {
+      document.getElementById('statSekolahDaftarCount').innerText = `${d.totalSekolah || 0} Satpen`;
+    }
+
+    const containerKec = document.getElementById('containerKecamatanList');
+    if (containerKec) {
+      const kecNames = Object.keys(sekolahPerKecamatanCache);
+      if (kecNames.length === 0) {
+        containerKec.innerHTML = `
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-500 text-xs w-full flex items-center gap-2">
+            <span class="material-symbols-outlined text-[20px] text-amber-600">info</span>
+            <span>Belum ada sekolah terdata. Nama sekolah per kecamatan akan otomatis muncul dan terdaftar di sini setelah diinput manual oleh Admin pada menu Kurikulum/BOSP/PIP atau Sarpras.</span>
+          </div>
+        `;
+      } else {
+        let htmlKec = '';
+        kecNames.sort().forEach(kec => {
+          const list = sekolahPerKecamatanCache[kec] || [];
+          htmlKec += `
+            <button onclick="showKecamatanSchools('${escapeAttr(kec)}')" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-primary hover:text-white transition-all cursor-pointer font-bold border border-slate-200 flex items-center gap-2 group active:scale-95 shadow-sm">
+              <span>Kec. ${kec}</span>
+              <span class="px-2 py-0.5 rounded-full bg-white group-hover:bg-white/20 text-primary group-hover:text-white text-[10px] font-extrabold border border-slate-200 group-hover:border-transparent">${list.length} Satpen</span>
+            </button>
+          `;
+        });
+        containerKec.innerHTML = htmlKec;
+      }
+    }
+
     renderAdminCharts(d);
   }
+}
+
+function showKecamatanSchools(kec) {
+  const container = document.getElementById('containerKecamatanSchools');
+  const title = document.getElementById('kecamatanSelectedTitle');
+  const grid = document.getElementById('kecamatanSchoolsGrid');
+  if (!container || !grid) return;
+
+  const list = (sekolahPerKecamatanCache && sekolahPerKecamatanCache[kec]) ? sekolahPerKecamatanCache[kec] : [];
+  title.innerText = `Daftar Satuan Pendidikan - Kec. ${kec} (${list.length} Sekolah)`;
+  
+  if (list.length === 0) {
+    grid.innerHTML = `<div class="col-span-full text-xs text-slate-400">Tidak ada sekolah terdaftar di kecamatan ini.</div>`;
+  } else {
+    let html = '';
+    list.forEach((s) => {
+      html += `
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-primary/40 transition-all flex items-start gap-2.5 shadow-sm">
+          <div class="w-8 h-8 rounded-lg ${s.jenjang === 'SMP' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-primary'} flex items-center justify-center font-bold text-xs shrink-0">
+            ${s.jenjang || 'SD'}
+          </div>
+          <div class="flex-1 min-w-0">
+            <h5 class="font-bold text-slate-900 text-xs truncate" title="${escapeAttr(s.nama_sekolah)}">${escapeHtml(s.nama_sekolah)}</h5>
+            <div class="text-[11px] text-slate-500 mt-0.5">NPSN: <span class="font-mono font-semibold">${s.npsn || '-'}</span></div>
+          </div>
+        </div>
+      `;
+    });
+    grid.innerHTML = html;
+  }
+  container.classList.remove('hidden');
+  container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function renderAdminCharts(analytics) {
@@ -1151,12 +978,14 @@ async function handleSaveSettings(e) {
   btn.innerText = "Menyimpan...";
 
   const payload = {
-    app_name: document.getElementById('inputCfgAppName').value,
-    app_tagline: document.getElementById('inputCfgTagline').value,
-    logo_utama_url: document.getElementById('inputCfgLogoUtama').value,
-    logo_pemkab_url: document.getElementById('inputCfgLogoPemkab').value,
-    nama_kabid_dikdas: document.getElementById('inputCfgNamaKabid').value,
-    nip_kabid_dikdas: document.getElementById('inputCfgNipKabid').value
+    app_name: document.getElementById('inputCfgAppName').value.trim(),
+    app_tagline: document.getElementById('inputCfgTagline').value.trim(),
+    hotline_wa: document.getElementById('inputCfgHotline') ? document.getElementById('inputCfgHotline').value.trim() : '',
+    email_dinas: document.getElementById('inputCfgEmail') ? document.getElementById('inputCfgEmail').value.trim() : '',
+    logo_utama_url: document.getElementById('inputCfgLogoUtama').value.trim(),
+    logo_pemkab_url: document.getElementById('inputCfgLogoPemkab').value.trim(),
+    nama_kabid_dikdas: document.getElementById('inputCfgNamaKabid').value.trim(),
+    nip_kabid_dikdas: document.getElementById('inputCfgNipKabid').value.trim()
   };
 
   const res = await callGasApi('updateConfig', payload, true);
@@ -1216,4 +1045,261 @@ function setupEventListeners() {
       document.querySelectorAll('.modal-overlay').forEach(el => el.classList.add('hidden'));
     }
   });
+}
+
+/**
+ * ============================================================================
+ * 10. RUANG BELAJAR & KOLABORASI (VIDEO, MEDIA PEMBELAJARAN, & MODUL AJAR)
+ * ============================================================================
+ */
+async function loadRuangBelajar() {
+  const res = await callGasApi('getRuangBelajar');
+  ruangBelajarCache = (res && res.success && Array.isArray(res.data)) ? res.data : [];
+  renderRuangBelajarPublic();
+  if (currentAdminToken) {
+    loadAdminRuangBelajar();
+  }
+}
+
+function filterRuangBelajarPublic(cat) {
+  activeRbCategory = cat;
+  document.querySelectorAll('#filterRuangBelajarButtons .filter-rb-btn').forEach(btn => {
+    if (btn.getAttribute('data-category') === cat) {
+      btn.className = 'filter-rb-btn px-3.5 py-2 rounded-xl bg-indigo-600 text-white shadow-sm transition-all';
+    } else {
+      btn.className = 'filter-rb-btn px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all';
+    }
+  });
+  renderRuangBelajarPublic();
+}
+
+function renderRuangBelajarPublic() {
+  const grid = document.getElementById('containerRuangBelajarGrid');
+  if (!grid) return;
+
+  const filtered = activeRbCategory === 'Semua' 
+    ? ruangBelajarCache 
+    : ruangBelajarCache.filter(item => item.kategori === activeRbCategory);
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `
+      <div class="col-span-full text-center py-12 bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
+        <span class="material-symbols-outlined text-5xl text-indigo-300 mb-2">smart_display</span>
+        <p class="font-bold text-slate-700 text-sm">Belum ada materi pembelajaran yang diinput.</p>
+        <p class="text-xs text-slate-400 mt-1">Admin dapat menambahkan video edukasi, media interaktif, atau modul ajar melalui Portal Admin.</p>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  filtered.forEach(item => {
+    // Check if YouTube
+    let ytEmbedHtml = '';
+    const ytMatch = String(item.url_materi || '').match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    if (ytMatch && ytMatch[1]) {
+      const ytId = ytMatch[1];
+      ytEmbedHtml = `
+        <div class="relative w-full aspect-video rounded-2xl overflow-hidden bg-slate-900 shadow-inner">
+          <iframe class="w-full h-full" src="https://www.youtube.com/embed/${ytId}" title="${escapeAttr(item.judul)}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+      `;
+    } else if (item.url_thumbnail) {
+      ytEmbedHtml = `
+        <div class="relative w-full aspect-video rounded-2xl overflow-hidden bg-slate-100 border">
+          <img src="${escapeAttr(item.url_thumbnail)}" alt="${escapeAttr(item.judul)}" class="w-full h-full object-cover">
+        </div>
+      `;
+    } else {
+      ytEmbedHtml = `
+        <div class="relative w-full aspect-video rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-indigo-800 flex flex-col items-center justify-center text-white p-4 text-center">
+          <span class="material-symbols-outlined text-4xl mb-1 opacity-90">${item.kategori?.includes('Video') ? 'play_circle' : 'menu_book'}</span>
+          <span class="text-xs font-bold uppercase tracking-wider opacity-80">${item.kategori || 'Media Digital'}</span>
+        </div>
+      `;
+    }
+
+    html += `
+      <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between group">
+        <div>
+          ${ytEmbedHtml}
+          <div class="flex items-center gap-2 mt-4 mb-2 flex-wrap">
+            <span class="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-bold border border-indigo-200">${escapeHtml(item.kategori || 'Video Pembelajaran')}</span>
+            <span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold">${escapeHtml(item.jenjang || 'SD/SMP')} - ${escapeHtml(item.kelas || 'Semua Kelas')}</span>
+          </div>
+          <h4 class="font-extrabold text-slate-900 text-sm mb-1.5 leading-snug group-hover:text-primary transition-colors">${escapeHtml(item.judul)}</h4>
+          <p class="text-xs text-slate-500 line-clamp-2 mb-3">${escapeHtml(item.deskripsi || 'Materi pembelajaran digital Disdikbud Konawe Utara.')}</p>
+        </div>
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+          <span class="text-[11px] text-slate-400 font-medium">Oleh: <strong class="text-slate-600">${escapeHtml(item.kontributor || 'Disdikbud Konut')}</strong></span>
+          <a href="${escapeAttr(item.url_materi)}" target="_blank" class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-bold hover:underline">
+            <span>Buka Media</span>
+            <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+          </a>
+        </div>
+      </div>
+    `;
+  });
+
+  grid.innerHTML = html;
+}
+
+async function loadAdminRuangBelajar() {
+  const tbody = document.getElementById('tbodyAdminRuangBelajar');
+  if (!tbody) return;
+  
+  if (ruangBelajarCache.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" class="text-center py-8 text-slate-400">
+          <span class="material-symbols-outlined text-4xl block text-slate-300 mb-2">video_library</span>
+          <p class="font-bold text-slate-600">Belum ada materi pembelajaran diinput.</p>
+          <p class="text-xs text-slate-400 mt-1">Klik tombol <b>+ Input Materi Baru</b> di atas untuk menambahkan video atau media pembelajaran.</p>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  let html = '';
+  ruangBelajarCache.forEach((r, idx) => {
+    html += `
+      <tr class="border-b hover:bg-slate-50">
+        <td class="p-3 font-semibold text-center">${idx + 1}</td>
+        <td class="p-3">
+          <div class="font-bold text-slate-900">${escapeHtml(r.judul || '-')}</div>
+          <div class="text-[11px] text-slate-400 max-w-xs truncate">${escapeHtml(r.deskripsi || '-')}</div>
+        </td>
+        <td class="p-3 font-semibold text-indigo-700">${escapeHtml(r.kategori || '-')}</td>
+        <td class="p-3"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">${escapeHtml(r.jenjang || '-')} - ${escapeHtml(r.kelas || '-')}</span></td>
+        <td class="p-3 font-medium text-slate-600">${escapeHtml(r.kontributor || '-')}</td>
+        <td class="p-3 text-center">
+          <a href="${escapeAttr(r.url_materi)}" target="_blank" class="text-indigo-600 hover:underline font-bold text-xs inline-flex items-center gap-0.5">
+            <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+            <span>Link</span>
+          </a>
+        </td>
+        <td class="p-3 text-center">
+          <button onclick="deleteRuangBelajarItem('${r.id_materi}')" title="Hapus Materi" class="text-rose-600 hover:text-rose-800 font-bold text-xs p-1">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+  tbody.innerHTML = html;
+}
+
+async function handleSaveRuangBelajarAdmin(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btnSubmitRuangBelajarAdmin');
+  btn.disabled = true;
+  btn.innerHTML = `<span class="inline-block animate-spin mr-2">⏳</span> Menyimpan...`;
+
+  const payload = {
+    judul: document.getElementById('admRbJudul').value.trim(),
+    kategori: document.getElementById('admRbKategori').value,
+    jenjang: document.getElementById('admRbJenjang').value,
+    kelas: document.getElementById('admRbKelas').value,
+    kontributor: document.getElementById('admRbKontributor').value.trim(),
+    url_materi: document.getElementById('admRbUrl').value.trim(),
+    url_thumbnail: document.getElementById('admRbThumbnail').value.trim(),
+    deskripsi: document.getElementById('admRbDeskripsi').value.trim()
+  };
+
+  const res = await callGasApi('saveRuangBelajar', payload, true);
+  btn.disabled = false;
+  btn.innerHTML = `Simpan Materi Pembelajaran`;
+
+  if (res && res.success) {
+    alert("✅ Materi Ruang Belajar berhasil disimpan!");
+    document.getElementById('formAddRuangBelajar').reset();
+    closeModal('modalAddRuangBelajar');
+    loadRuangBelajar();
+  } else {
+    alert("Gagal menyimpan materi: " + (res.message || "Terjadi kesalahan."));
+  }
+}
+
+async function deleteRuangBelajarItem(id) {
+  if (!confirm("Apakah Anda yakin ingin menghapus materi pembelajaran ini?")) return;
+  const res = await callGasApi('deleteRuangBelajar', { id }, true);
+  if (res && res.success) {
+    alert("Materi pembelajaran berhasil dihapus.");
+    loadRuangBelajar();
+  } else {
+    alert("Gagal menghapus: " + res.message);
+  }
+}
+
+/**
+ * ============================================================================
+ * 11. CEK STATUS VERIFIKASI USULAN SARPRAS (PUBLIK)
+ * ============================================================================
+ */
+async function handleCheckSarprasPublic(e) {
+  e.preventDefault();
+  const query = document.getElementById('checkSarprasQuery').value.trim();
+  const btn = document.getElementById('btnSubmitCheckSarpras');
+  const resBox = document.getElementById('checkSarprasResult');
+
+  if (!query) return alert("Masukkan NPSN atau Nama Satuan Pendidikan!");
+
+  btn.disabled = true;
+  btn.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> Cek`;
+
+  const res = await callGasApi('checkSarpras', { query });
+  btn.disabled = false;
+  btn.innerHTML = `<span class="material-symbols-outlined text-[18px]">search</span><span>Cek</span>`;
+
+  resBox.classList.remove('hidden');
+
+  if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+    let html = '';
+    res.data.forEach(item => {
+      const isAccepted = item.status_usulan === 'Berkas Diterima' || item.status_usulan?.includes('DAK') || item.status_usulan?.includes('APBD');
+      const isRejected = item.status_usulan === 'Berkas Ditolak';
+      html += `
+        <div class="p-4 rounded-2xl border ${isAccepted ? 'bg-emerald-50 border-emerald-200' : isRejected ? 'bg-rose-50 border-rose-200' : 'bg-amber-50 border-amber-200'} space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-700">${escapeHtml(item.id_sarpras)}</span>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${
+              item.status_usulan === 'Berkas Diterima' ? 'bg-emerald-600 text-white' :
+              item.status_usulan === 'Berkas Ditolak' ? 'bg-rose-600 text-white' :
+              item.status_usulan?.includes('DAK') ? 'bg-indigo-600 text-white' :
+              item.status_usulan?.includes('APBD') ? 'bg-blue-600 text-white' :
+              'bg-amber-500 text-white'
+            }">${escapeHtml(item.status_usulan || 'Menunggu Verifikasi')}</span>
+          </div>
+          <div class="font-extrabold text-sm text-slate-900">${escapeHtml(item.nama_sekolah)}</div>
+          <div class="text-xs text-slate-600">NPSN: ${escapeHtml(item.npsn)} | Kec. ${escapeHtml(item.kecamatan)}</div>
+          <div class="text-xs text-slate-700">Fasilitas: <strong>${escapeHtml(item.jenis_fasilitas)} (${escapeHtml(item.kondisi)})</strong></div>
+          <div class="text-xs text-slate-700">Penanganan: <em>${escapeHtml(item.kebutuhan_penanganan || '-')}</em></div>
+          <div class="text-xs font-bold text-slate-900">Estimasi Usulan: Rp ${Number(item.estimasi_biaya || 0).toLocaleString('id-ID')}</div>
+        </div>
+      `;
+    });
+    resBox.innerHTML = html;
+  } else {
+    resBox.innerHTML = `
+      <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-500 text-center">
+        ${(res && res.message) ? escapeHtml(res.message) : "Usulan Sarpras untuk sekolah tersebut belum ditemukan atau masih dalam proses rekapitulasi."}
+      </div>
+    `;
+  }
+}
+
+/**
+ * String Escaping Helpers
+ */
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, function(m) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+  });
+}
+
+function escapeAttr(str) {
+  if (!str) return '';
+  return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }

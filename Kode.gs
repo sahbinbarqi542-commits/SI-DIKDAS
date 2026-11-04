@@ -244,6 +244,9 @@ function doGet(e) {
       case 'getNews':
         result = handleGetNews();
         break;
+      case 'getRuangBelajar':
+        result = handleGetRuangBelajar();
+        break;
       default:
         result = { success: false, message: 'Action GET tidak dikenal: ' + action };
     }
@@ -301,6 +304,12 @@ function doPost(e) {
       case 'deleteSarpras':
         result = handleDeleteSarpras(data.id || body.id, token);
         break;
+      case 'saveRuangBelajar':
+        result = handleSaveRuangBelajar(data, token);
+        break;
+      case 'deleteRuangBelajar':
+        result = handleDeleteRuangBelajar(data.id || body.id, token);
+        break;
       case 'clearAllData':
         result = handleClearAllData(token);
         break;
@@ -349,40 +358,147 @@ function handleGetAnalytics() {
 
   let totalBosp = 0;
   const bospKec = {};
-  const sekolahSet = {};
+  const sekolahMap = {};
+
+  function registerSchool(npsn, nama, kec, jenjang) {
+    if (!npsn && !nama) return;
+    const cleanNpsn = String(npsn || '').trim();
+    const cleanNama = String(nama || '').trim();
+    const key = cleanNpsn || cleanNama;
+    if (!sekolahMap[key]) {
+      sekolahMap[key] = {
+        npsn: cleanNpsn || '-',
+        nama_sekolah: cleanNama || cleanNpsn,
+        kecamatan: kec || 'Asera',
+        jenjang: jenjang || (cleanNama.toUpperCase().includes('SMP') ? 'SMP' : 'SD')
+      };
+    }
+  }
 
   bospRows.forEach(r => {
     const n = Number(r.alokasi_dana) || 0;
     totalBosp += n;
     const k = r.kecamatan || 'Lainnya';
     bospKec[k] = (bospKec[k] || 0) + n;
-    if (r.npsn) sekolahSet[String(r.npsn).trim()] = true;
+    registerSchool(r.npsn, r.nama_sekolah, r.kecamatan, r.jenjang);
   });
 
   const sarprasKondisi = { 'Baik': 0, 'Rusak Sedang': 0, 'Rusak Berat': 0 };
   sarprasRows.forEach(r => {
     const k = r.kondisi || 'Baik';
     sarprasKondisi[k] = (sarprasKondisi[k] || 0) + 1;
-    if (r.npsn) sekolahSet[String(r.npsn).trim()] = true;
+    registerSchool(r.npsn, r.nama_sekolah, r.kecamatan, r.jenjang);
   });
 
   pipRows.forEach(r => {
-    if (r.npsn) sekolahSet[String(r.npsn).trim()] = true;
+    registerSchool(r.npsn, r.nama_sekolah, r.kecamatan, r.jenjang);
   });
 
-  const countSekolah = Object.keys(sekolahSet).length;
+  const daftarSekolah = Object.values(sekolahMap);
+  const sekolahPerKecamatan = {};
+  daftarSekolah.forEach(s => {
+    const k = s.kecamatan || 'Lainnya';
+    if (!sekolahPerKecamatan[k]) sekolahPerKecamatan[k] = [];
+    sekolahPerKecamatan[k].push(s);
+  });
 
   return {
     success: true,
     data: {
-      totalSekolah: countSekolah,
+      totalSekolah: daftarSekolah.length,
       totalBosp: totalBosp,
       totalPip: pipRows.length,
       totalSarpras: sarprasRows.length,
       bospKecamatan: bospKec,
-      sarprasKondisi: sarprasKondisi
+      sarprasKondisi: sarprasKondisi,
+      daftarSekolah: daftarSekolah,
+      sekolahPerKecamatan: sekolahPerKecamatan
     }
   };
+}
+
+function handleGetRuangBelajar() {
+  try {
+    const rows = readSheetAsObjects('TB_RuangBelajar');
+    return { success: true, data: rows };
+  } catch (e) {
+    return { success: true, data: [] };
+  }
+}
+
+function handleSaveRuangBelajar(payload, token) {
+  const session = verifyToken_(token);
+  if (!session) return { success: false, message: "Sesi tidak valid." };
+
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    let sh;
+    try {
+      sh = getSheet('TB_RuangBelajar');
+    } catch (e) {
+      const ss = getDb();
+      sh = ss.insertSheet('TB_RuangBelajar');
+      sh.appendRow(['id_materi', 'tgl_unggah', 'judul', 'kategori', 'jenjang', 'kelas', 'url_materi', 'url_thumbnail', 'deskripsi', 'kontributor']);
+      sh.getRange(1, 1, 1, 10).setBackground('#0084C9').setFontColor('#FFFFFF').setFontWeight('bold');
+    }
+
+    const id = payload.id_materi || ('MAT-' + Utilities.formatDate(new Date(), "GMT+7", "yyyyMMdd-HHmmss"));
+    const today = Utilities.formatDate(new Date(), "GMT+7", "yyyy-MM-dd");
+
+    if (payload._row && payload._row > 1) {
+      sh.getRange(payload._row, 2, 1, 9).setValues([[
+        payload.tgl_unggah || today,
+        payload.judul,
+        payload.kategori || 'Video Pembelajaran',
+        payload.jenjang || 'SD',
+        payload.kelas || 'Semua Kelas',
+        payload.url_materi || '',
+        payload.url_thumbnail || '',
+        payload.deskripsi || '',
+        payload.kontributor || 'Disdikbud Konut'
+      ]]);
+    } else {
+      sh.appendRow([
+        id,
+        today,
+        payload.judul,
+        payload.kategori || 'Video Pembelajaran',
+        payload.jenjang || 'SD',
+        payload.kelas || 'Semua Kelas',
+        payload.url_materi || '',
+        payload.url_thumbnail || '',
+        payload.deskripsi || '',
+        payload.kontributor || 'Disdikbud Konut'
+      ]);
+    }
+    bump('TB_RuangBelajar');
+    return { success: true, message: "Materi Ruang Belajar berhasil disimpan!" };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function handleDeleteRuangBelajar(id, token) {
+  const session = verifyToken_(token);
+  if (!session) return { success: false, message: "Sesi tidak valid." };
+
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const sh = getSheet('TB_RuangBelajar');
+    const data = sh.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]) === String(id)) {
+        sh.deleteRow(i + 1);
+        bump('TB_RuangBelajar');
+        return { success: true, message: "Materi Ruang Belajar berhasil dihapus." };
+      }
+    }
+    return { success: false, message: "Materi tidak ditemukan." };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function handleCheckPip(nisn, ibu) {
@@ -445,7 +561,7 @@ function handleCheckSarpras(query) {
       }))
     };
   }
-  return { success: false, message: "Usulan Sarpras dengan NPSN / No. Registrasi '" + query + "' belum ditemukan atau masih dalam proses perekaman." };
+  return { success: false, message: "Usulan Sarpras dengan kata kunci '" + query + "' tidak ditemukan." };
 }
 
 function handleGetBosp(token) {
@@ -956,18 +1072,26 @@ function setupAppEnvironment() {
     newsSh.getRange(1, 1, 1, 8).setBackground('#0084C9').setFontColor('#FFFFFF').setFontWeight('bold');
   }
 
+  // Setup TB_RuangBelajar (Tabel Kosong Siap Input Manual)
+  let rbSh = ss.getSheetByName('TB_RuangBelajar');
+  if (!rbSh) {
+    rbSh = ss.insertSheet('TB_RuangBelajar');
+    rbSh.appendRow(['id_materi', 'tgl_unggah', 'judul', 'kategori', 'jenjang', 'kelas', 'url_materi', 'url_thumbnail', 'deskripsi', 'kontributor']);
+    rbSh.getRange(1, 1, 1, 10).setBackground('#0084C9').setFontColor('#FFFFFF').setFontWeight('bold');
+  }
+
   Logger.log("✅ Setup SI-DIKDAS REST Server Berhasil! Struktur database kosong telah siap.");
   Logger.log("   Spreadsheet URL : " + ss.getUrl());
   Logger.log("   Drive Folder URL: " + rootFolder.getUrl());
 }
 
 /**
- * Utilitas untuk Mengosongkan Seluruh Data Transaksi (BOSP, PIP, Sarpras, Pengumuman)
+ * Utilitas untuk Mengosongkan Seluruh Data Transaksi (BOSP, PIP, Sarpras, Pengumuman, Ruang Belajar)
  * Menjaga baris header tetap ada, hanya menghapus isi baris data.
  */
 function clearAllDatabaseTables() {
   const ss = getDb();
-  ['TB_BOSP', 'TB_PIP', 'TB_Sarpras', 'TB_Pengumuman'].forEach(sheetName => {
+  ['TB_BOSP', 'TB_PIP', 'TB_Sarpras', 'TB_Pengumuman', 'TB_RuangBelajar'].forEach(sheetName => {
     try {
       const sh = ss.getSheetByName(sheetName);
       if (sh && sh.getLastRow() > 1) {
@@ -981,5 +1105,6 @@ function clearAllDatabaseTables() {
   bump('TB_PIP');
   bump('TB_Sarpras');
   bump('TB_Pengumuman');
-  Logger.log("✅ Seluruh data transaksi BOSP, PIP, Sarpras, dan Pengumuman telah dikosongkan.");
+  bump('TB_RuangBelajar');
+  Logger.log("✅ Seluruh data transaksi BOSP, PIP, Sarpras, Pengumuman, dan Ruang Belajar telah dikosongkan.");
 }
