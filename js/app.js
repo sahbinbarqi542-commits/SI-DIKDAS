@@ -321,6 +321,18 @@ function showAdminDashboard() {
   loadAdminRuangBelajar();
 }
 
+function scrollToAdminSection(id) {
+  const el = document.getElementById(id);
+  const container = document.getElementById('adminPanelScrollContainer');
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    el.classList.add('ring-4', 'ring-amber-400', 'transition-all');
+    setTimeout(() => {
+      el.classList.remove('ring-4', 'ring-amber-400');
+    }, 2200);
+  }
+}
+
 function switchAdminSubTab(tabId) {
   document.querySelectorAll('.adm-subtab-content').forEach(el => el.classList.add('hidden'));
   document.querySelectorAll('.adm-nav-btn').forEach(el => el.classList.remove('bg-primary', 'text-white'));
@@ -514,6 +526,12 @@ async function loadAdminSarpras() {
 
   const res = await callGasApi('getSarpras', { token: currentAdminToken });
   sarprasCache = (res && res.success && Array.isArray(res.data)) ? res.data : [];
+
+  const badgeEl = document.getElementById('badgePendingSarprasCount');
+  if (badgeEl) {
+    const pendingCount = sarprasCache.filter(r => !r.status_usulan || r.status_usulan === 'Menunggu Verifikasi').length;
+    badgeEl.innerText = pendingCount > 0 ? `${pendingCount} Menunggu` : sarprasCache.length;
+  }
 
   if (sarprasCache.length === 0) {
     tbody.innerHTML = `

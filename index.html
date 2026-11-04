@@ -973,40 +973,72 @@
         </div>
       </div>
 
-      <!-- Quick Action Toolbar (Satu Tampilan Tunggal Terpadu) -->
-      <div class="bg-slate-100 border-b border-slate-200 px-6 py-3 flex items-center justify-between gap-3 overflow-x-auto shrink-0">
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-2 hidden sm:inline">Aksi Cepat Admin:</span>
-          <button onclick="openModal('modalAddBosp')" class="px-3.5 py-2 bg-primary hover:bg-primary-container text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 whitespace-nowrap">
-            <span class="material-symbols-outlined text-[16px]">add_circle</span>
-            <span>+ Input BOSP (Kurikulum)</span>
+      <!-- Admin Navigasi Tab Menu (Satu Tampilan Terpadu dengan Navigasi Cepat) -->
+      <div class="bg-slate-200/90 border-b border-slate-300 px-6 py-2.5 flex items-center justify-between gap-3 overflow-x-auto shrink-0">
+        <div class="flex items-center gap-1.5 text-xs font-bold">
+          <span class="text-slate-500 uppercase tracking-wider text-[11px] mr-1 hidden lg:inline">Menu Navigasi:</span>
+          <button onclick="scrollToAdminSection('admin-section-analitik')" class="adm-menu-btn px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-primary transition-all border border-slate-300 shadow-sm flex items-center gap-1.5 whitespace-nowrap active:scale-95">
+            <span class="material-symbols-outlined text-[16px]">monitoring</span>
+            <span>1. Ringkasan</span>
           </button>
-          <button onclick="openModal('modalAddPip')" class="px-3.5 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 whitespace-nowrap">
-            <span class="material-symbols-outlined text-[16px]">school</span>
-            <span>+ Input PIP (Kurikulum)</span>
+          <button onclick="scrollToAdminSection('admin-section-kurikulum')" class="adm-menu-btn px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-primary transition-all border border-slate-300 shadow-sm flex items-center gap-1.5 whitespace-nowrap active:scale-95">
+            <span class="material-symbols-outlined text-[16px]">menu_book</span>
+            <span>2. Kurikulum (BOSP/PIP)</span>
           </button>
-          <button onclick="openModal('modalAddSarpras')" class="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 whitespace-nowrap">
-            <span class="material-symbols-outlined text-[16px]">domain_add</span>
-            <span>+ Input Sarpras (Sarpras)</span>
+          <button onclick="scrollToAdminSection('admin-section-sarpras')" class="adm-menu-btn px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold transition-all border border-amber-600 shadow-md flex items-center gap-1.5 whitespace-nowrap active:scale-95 ring-2 ring-amber-300/60">
+            <span class="material-symbols-outlined text-[18px]">domain_verification</span>
+            <span>3. Menu Verifikasi Sarpras</span>
+            <span id="badgePendingSarprasCount" class="px-2 py-0.5 rounded-full bg-white text-amber-900 text-[10px] font-black shadow-sm ml-1">0</span>
           </button>
-          <button onclick="openModal('modalAddRuangBelajar')" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 whitespace-nowrap">
-            <span class="material-symbols-outlined text-[16px]">play_lesson</span>
-            <span>+ Input Ruang Belajar</span>
+          <button onclick="scrollToAdminSection('admin-section-ruang-belajar')" class="adm-menu-btn px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-indigo-600 transition-all border border-slate-300 shadow-sm flex items-center gap-1.5 whitespace-nowrap active:scale-95">
+            <span class="material-symbols-outlined text-[16px]">smart_display</span>
+            <span>4. Ruang Belajar</span>
+          </button>
+          <button onclick="scrollToAdminSection('admin-section-pengaturan')" class="adm-menu-btn px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-primary transition-all border border-slate-300 shadow-sm flex items-center gap-1.5 whitespace-nowrap active:scale-95">
+            <span class="material-symbols-outlined text-[16px]">settings</span>
+            <span>5. Pengaturan &amp; Logo</span>
           </button>
         </div>
+
+        <div class="flex items-center gap-1.5">
+          <button onclick="openModal('modalAddSarpras')" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1 whitespace-nowrap active:scale-95">
+            <span class="material-symbols-outlined text-[16px]">domain_add</span>
+            <span>+ Input Sarpras</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Action Toolbar (Input Manual Cepat) -->
+      <div class="bg-slate-100 border-b border-slate-200 px-6 py-2 flex items-center justify-between gap-2 overflow-x-auto shrink-0 text-xs">
         <div class="flex items-center gap-2">
-          <a href="#admin-section-pengaturan" class="px-3 py-2 bg-white hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold shadow-sm flex items-center gap-1 whitespace-nowrap">
-            <span class="material-symbols-outlined text-[16px]">settings</span>
-            <span>Pengaturan &amp; Logo</span>
-          </a>
+          <span class="text-slate-400 font-semibold text-[11px] hidden sm:inline">Input Data Cepat:</span>
+          <button onclick="openModal('modalAddBosp')" class="px-2.5 py-1 bg-white hover:bg-blue-50 text-primary border border-primary/30 rounded-lg text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap">
+            <span class="material-symbols-outlined text-[14px]">add_circle</span>
+            <span>+ BOSP</span>
+          </button>
+          <button onclick="openModal('modalAddPip')" class="px-2.5 py-1 bg-white hover:bg-sky-50 text-sky-800 border border-sky-300 rounded-lg text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap">
+            <span class="material-symbols-outlined text-[14px]">school</span>
+            <span>+ PIP</span>
+          </button>
+          <button onclick="openModal('modalAddSarpras')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap">
+            <span class="material-symbols-outlined text-[14px]">domain_add</span>
+            <span>+ Sarpras</span>
+          </button>
+          <button onclick="openModal('modalAddRuangBelajar')" class="px-2.5 py-1 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-300 rounded-lg text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap">
+            <span class="material-symbols-outlined text-[14px]">play_lesson</span>
+            <span>+ Ruang Belajar</span>
+          </button>
+        </div>
+        <div class="text-[11px] text-slate-500 font-medium hidden md:inline">
+          Data tersinkronisasi langsung dengan database Google Sheets
         </div>
       </div>
 
       <!-- Tab Contents Area: SATU TAMPILAN TUNGGAL ALL-IN-ONE -->
-      <div class="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-8">
+      <div id="adminPanelScrollContainer" class="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-8 scroll-smooth">
         
         <!-- BAGIAN 1: GRAFIK & ANALITIK TERPADU -->
-        <div class="space-y-4">
+        <div id="admin-section-analitik" class="space-y-4 scroll-mt-4">
           <div class="flex items-center justify-between">
             <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
               <span class="material-symbols-outlined text-primary text-[20px]">monitoring</span>
@@ -1030,7 +1062,7 @@
         </div>
 
         <!-- BAGIAN 2: SEKSI KURIKULUM (DANA BOSP & BEASISWA PIP) -->
-        <div class="space-y-6 pt-4 border-t border-slate-200">
+        <div id="admin-section-kurikulum" class="space-y-6 pt-4 border-t border-slate-200 scroll-mt-4">
           <div class="flex items-center justify-between">
             <div>
               <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
@@ -1122,22 +1154,28 @@
           </div>
         </div>
 
-        <!-- BAGIAN 3: SEKSI SARPRAS (USULAN & KONDISI FISIK SEKOLAH) -->
-        <div class="space-y-4 pt-4 border-t border-slate-200">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200">
+        <!-- BAGIAN 3: MENU VERIFIKASI SARPRAS & REKOMENDASI KERUSAKAN SEKOLAH -->
+        <div id="admin-section-sarpras" class="space-y-4 pt-4 border-t border-slate-200 scroll-mt-4">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gradient-to-r from-amber-50 via-amber-100/50 to-white p-5 rounded-3xl border-2 border-amber-300 shadow-sm">
             <div>
-              <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
-                <span class="material-symbols-outlined text-amber-600 text-[20px]">domain</span>
-                <span>3. Layanan Seksi Sarpras: Inventaris &amp; Usulan Kerusakan Sekolah</span>
+              <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-bold mb-1 shadow-sm">
+                <span class="material-symbols-outlined text-[13px]">verified</span>
+                <span>SEKSI SARANA &amp; PRASARANA</span>
+              </div>
+              <h4 class="font-extrabold text-slate-900 text-base sm:text-lg flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-600 text-[26px]">domain_verification</span>
+                <span>3. Menu Verifikasi Sarpras &amp; Usulan Sekolah</span>
               </h4>
-              <p class="text-xs text-slate-500 mt-0.5">Input manual kondisi ruang kelas, evaluasi kerusakan, dan rekomendasi DAK/APBD</p>
+              <p class="text-xs text-slate-600 mt-0.5">Tinjau usulan kondisi kerusakan ruang kelas. Klik tombol <b>Berkas Diterima</b> atau <b>Berkas Ditolak</b> untuk verifikasi usulan.</p>
             </div>
-            <div class="flex items-center gap-2">
-              <button onclick="exportSarprasToExcel()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm">
-                <i class="fa-solid fa-file-excel me-1"></i> Excel
+            <div class="flex items-center gap-2 shrink-0">
+              <button onclick="exportSarprasToExcel()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 transition-all">
+                <i class="fa-solid fa-file-excel"></i>
+                <span>Excel</span>
               </button>
-              <button onclick="openModal('modalAddSarpras')" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm">
-                + Input Sarpras Manual
+              <button onclick="openModal('modalAddSarpras')" class="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 transition-all active:scale-95">
+                <span class="material-symbols-outlined text-[16px]">domain_add</span>
+                <span>+ Input Sarpras Manual</span>
               </button>
             </div>
           </div>
@@ -1164,7 +1202,7 @@
         </div>
 
         <!-- BAGIAN 4: RUANG BELAJAR & KOLABORASI (VIDEO & MEDIA PEMBELAJARAN) -->
-        <div class="space-y-4 pt-4 border-t border-slate-200">
+        <div id="admin-section-ruang-belajar" class="space-y-4 pt-4 border-t border-slate-200 scroll-mt-4">
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200">
             <div>
               <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
