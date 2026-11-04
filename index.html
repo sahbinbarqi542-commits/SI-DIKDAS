@@ -63,8 +63,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-  <!-- Project Stylesheet -->
-  <link rel="stylesheet" href="css/style.css">
+  <!-- Project Stylesheet with Cache Busting -->
+  <link rel="stylesheet" href="css/style.css?v=20261104_1835">
 </head>
 <body class="bg-background text-on-background font-sans antialiased">
 
@@ -125,7 +125,8 @@
 
       <!-- Action Cluster -->
       <div class="flex items-center gap-3">
-        <button onclick="openAdminModal()" class="inline-flex items-center justify-center bg-primary hover:bg-primary-container text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md transition-all duration-200 active:scale-95">
+        <button onclick="openAdminModal()" id="btnNavPortalAdmin" class="inline-flex items-center justify-center bg-primary hover:bg-primary-container text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md transition-all duration-200 active:scale-95 cursor-pointer">
+          <span class="material-symbols-outlined text-[16px] mr-1">admin_panel_settings</span>
           <span class="btn-admin-label">Portal Admin</span>
         </button>
       </div>
@@ -2361,8 +2362,8 @@
     </div>
   </div>
 
-  <!-- Frontend Scripts (Decoupled Standard) -->
-  <script src="js/config.js"></script>
-  <script src="js/app.js"></script>
+  <!-- Frontend Scripts (Decoupled Standard with Cache Busting) -->
+  <script src="js/config.js?v=20261104_1835"></script>
+  <script src="js/app.js?v=20261104_1835"></script>
 </body>
 </html>

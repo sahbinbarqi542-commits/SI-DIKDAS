@@ -120,13 +120,9 @@ function applyBranding(cfg) {
     document.querySelectorAll('.app-alamat-dynamic').forEach(el => el.innerText = cfg.alamat_kantor);
   }
 
-  // Jaga keaslian logo resmi: Tut Wuri Handayani & Lambang Pemkab Konawe Utara
-  const logoUtama = (cfg.logo_utama_url && !cfg.logo_utama_url.includes('GANTI_')) ? cfg.logo_utama_url : OFFICIAL_LOGO_UTAMA;
-  let logoPemkab = (cfg.logo_pemkab_url && !cfg.logo_pemkab_url.includes('GANTI_')) ? cfg.logo_pemkab_url : OFFICIAL_LOGO_PEMKAB;
-
-  if (!logoPemkab || logoPemkab.includes('drive.google.com') || logoPemkab.includes('googleusercontent.com')) {
-    logoPemkab = OFFICIAL_LOGO_PEMKAB;
-  }
+  // Terapkan Logo: Gunakan logo dari konfigurasi database jika ada, default resmi jika belum diset
+  const logoUtama = (cfg.logo_utama_url && String(cfg.logo_utama_url).trim()) ? cfg.logo_utama_url : OFFICIAL_LOGO_UTAMA;
+  const logoPemkab = (cfg.logo_pemkab_url && String(cfg.logo_pemkab_url).trim()) ? cfg.logo_pemkab_url : OFFICIAL_LOGO_PEMKAB;
 
   document.querySelectorAll('.logo-utama-dynamic').forEach(el => {
     el.src = logoUtama;
@@ -1177,6 +1173,7 @@ async function handleSaveSettings(e) {
   btn.innerText = "Simpan Semua Pengaturan";
 
   if (res.success) {
+    applyBranding(payload);
     alert("Pengaturan dan logo berhasil disimpan!");
     loadAppConfig();
   } else {
@@ -1201,7 +1198,12 @@ function triggerLogoUpload(inputId) {
         }, true);
         if (upRes.success) {
           document.getElementById(inputId).value = upRes.directUrl;
-          alert("Logo berhasil diunggah ke Google Drive!");
+          if (inputId === 'inputCfgLogoPemkab') {
+            document.querySelectorAll('.logo-pemkab-dynamic').forEach(el => el.src = upRes.directUrl);
+          } else if (inputId === 'inputCfgLogoUtama') {
+            document.querySelectorAll('.logo-utama-dynamic').forEach(el => el.src = upRes.directUrl);
+          }
+          alert("Logo berhasil diunggah ke Google Drive dan langsung diterapkan!\nKlik 'Simpan Semua Pengaturan' untuk menyimpan perubahan secara permanen.");
         } else {
           alert("Gagal: " + upRes.message);
         }
@@ -1226,8 +1228,20 @@ function closeModal(id) {
 function openModal(id) {
   const el = document.getElementById(id);
   if (el) {
+    if (id === 'modalAdminLogin' || id === 'modalAdminPanel' || id === 'modalSekolahPanel') {
+      ['modalAdminLogin', 'modalAdminPanel', 'modalSekolahPanel'].forEach(mId => {
+        if (mId !== id) {
+          const other = document.getElementById(mId);
+          if (other) {
+            other.classList.add('hidden');
+            other.style.display = 'none';
+          }
+        }
+      });
+    }
     el.classList.remove('hidden');
     el.style.display = 'flex';
+    el.style.zIndex = '99999';
   }
 }
 
