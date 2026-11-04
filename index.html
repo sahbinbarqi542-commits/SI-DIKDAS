@@ -950,12 +950,16 @@
             <span class="material-symbols-outlined text-[16px]">settings</span>
             <span>6. Pengaturan &amp; Logo</span>
           </button>
+          <button onclick="scrollToAdminSection('admin-section-pengguna')" class="adm-menu-btn px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-purple-700 transition-all border border-slate-300 shadow-sm flex items-center gap-1.5 whitespace-nowrap active:scale-95">
+            <span class="material-symbols-outlined text-[16px]">manage_accounts</span>
+            <span>7. Manajemen Pengguna</span>
+          </button>
         </div>
 
         <div class="flex items-center gap-1.5">
-          <button onclick="openModal('modalAddSarpras')" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1 whitespace-nowrap active:scale-95">
-            <span class="material-symbols-outlined text-[16px]">domain_add</span>
-            <span>+ Input Sarpras</span>
+          <button onclick="openModal('modalAddUser')" class="px-3.5 py-1.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1 whitespace-nowrap active:scale-95">
+            <span class="material-symbols-outlined text-[16px]">person_add</span>
+            <span>+ Tambah Admin Sekolah</span>
           </button>
         </div>
       </div>
@@ -971,10 +975,6 @@
           <button onclick="openModal('modalAddPip')" class="px-2.5 py-1 bg-white hover:bg-sky-50 text-sky-800 border border-sky-300 rounded-lg text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap">
             <span class="material-symbols-outlined text-[14px]">school</span>
             <span>+ PIP</span>
-          </button>
-          <button onclick="openModal('modalAddSarpras')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap">
-            <span class="material-symbols-outlined text-[14px]">domain_add</span>
-            <span>+ Sarpras</span>
           </button>
           <button onclick="openModal('modalAddRuangBelajar')" class="px-2.5 py-1 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-300 rounded-lg text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap">
             <span class="material-symbols-outlined text-[14px]">play_lesson</span>
@@ -1054,17 +1054,17 @@
                 <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[11px] border-b">
                   <tr>
                     <th class="p-3 text-center">No</th>
-                    <th class="p-3">NPSN</th>
-                    <th class="p-3">Nama Sekolah</th>
-                    <th class="p-3">Jenjang</th>
+                    <th class="p-3">Satuan Pendidikan</th>
                     <th class="p-3">Kecamatan</th>
-                    <th class="p-3">Alokasi Dana</th>
-                    <th class="p-3">Status Salur</th>
-                    <th class="p-3 text-center">Aksi</th>
+                    <th class="p-3">Tahap &amp; Alokasi</th>
+                    <th class="p-3">Berkas SPJ</th>
+                    <th class="p-3 text-center">Status Verifikasi SPJ</th>
+                    <th class="p-3 text-center">Surat Rekomendasi</th>
+                    <th class="p-3 text-center">Aksi Verifikasi Dinas</th>
                   </tr>
                 </thead>
                 <tbody id="tbodyAdminBosp">
-                  <tr><td colspan="8" class="text-center py-4 text-slate-400">Memuat data...</td></tr>
+                  <tr><td colspan="8" class="text-center py-4 text-slate-400">Memuat data BOSP &amp; SPJ...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -1312,6 +1312,47 @@
           </div>
         </div>
 
+        <!-- BAGIAN 7: MANAJEMEN PENGGUNA (ADMIN SEKOLAH) -->
+        <div id="admin-section-pengguna" class="space-y-4 scroll-mt-4 pt-4 border-t border-slate-200">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-1 rounded-lg bg-purple-50 text-purple-700 font-extrabold text-xs">PENGGUNA</span>
+              <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-purple-700 text-[20px]">manage_accounts</span>
+                7. Manajemen Akun Admin Satuan Pendidikan (Sekolah)
+              </h4>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="openModal('modalAddUser')" class="px-3.5 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 whitespace-nowrap active:scale-95">
+                <span class="material-symbols-outlined text-[16px]">person_add</span>
+                <span>+ Tambah Admin Sekolah</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 overflow-x-auto shadow-sm">
+            <table class="w-full text-xs text-left">
+              <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[11px] border-b">
+                <tr>
+                  <th class="p-3 text-center">No</th>
+                  <th class="p-3">Username</th>
+                  <th class="p-3">Nama Satuan Pendidikan</th>
+                  <th class="p-3">NPSN</th>
+                  <th class="p-3">Jenjang</th>
+                  <th class="p-3">Kecamatan</th>
+                  <th class="p-3">Operator / Bendahara</th>
+                  <th class="p-3">No. WhatsApp</th>
+                  <th class="p-3 text-center">Status</th>
+                  <th class="p-3 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyAdminUsers">
+                <tr><td colspan="10" class="text-center py-4 text-slate-400">Belum ada akun admin sekolah. Klik '+ Tambah Admin Sekolah' untuk mendaftarkan.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -1328,6 +1369,8 @@
       <h4 class="font-bold text-slate-900 text-sm mb-4">Input Data Penyaluran BOSP</h4>
       
       <form id="formAddBosp" onsubmit="handleSaveBospAdmin(event)" class="space-y-3 text-xs font-bold text-slate-700">
+        <input type="hidden" id="admBospId">
+        <input type="hidden" id="admBospRow">
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block mb-1">Tahun Anggaran</label>
@@ -1360,7 +1403,21 @@
         </div>
         <div>
           <label class="block mb-1">Kecamatan</label>
-          <input type="text" id="admBospKecamatan" required class="w-full h-9 px-3 border rounded-lg text-xs">
+          <select id="admBospKecamatan" class="w-full h-9 px-3 border rounded-lg text-xs bg-white">
+            <option value="Asera">Asera</option>
+            <option value="Andowia">Andowia</option>
+            <option value="Molawe">Molawe</option>
+            <option value="Lasolo">Lasolo</option>
+            <option value="Lasolo Kepulauan">Lasolo Kepulauan</option>
+            <option value="Lembo">Lembo</option>
+            <option value="Sawa">Sawa</option>
+            <option value="Motui">Motui</option>
+            <option value="Wiwirano">Wiwirano</option>
+            <option value="Landawe">Landawe</option>
+            <option value="Oheo">Oheo</option>
+            <option value="Langgikima">Langgikima</option>
+            <option value="Wawolesea">Wawolesea</option>
+          </select>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
@@ -1375,13 +1432,124 @@
             </select>
           </div>
         </div>
-        <div>
-          <label class="block mb-1">Catatan SPJ</label>
-          <input type="text" id="admBospSpj" placeholder="SPJ Lengkap & Terverifikasi" class="w-full h-9 px-3 border rounded-lg text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block mb-1">Status Verifikasi SPJ</label>
+            <select id="admBospStatusSpj" class="w-full h-9 px-3 border rounded-lg text-xs bg-white">
+              <option value="Menunggu Verifikasi">Menunggu Verifikasi</option>
+              <option value="SPJ Diterima">SPJ Diterima (Terbit Rekomendasi)</option>
+              <option value="SPJ Ditolak">SPJ Ditolak (Perlu Perbaikan)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block mb-1">Link Dokumen SPJ (URL Drive/PDF)</label>
+            <input type="url" id="admBospUrlSpj" placeholder="https://..." class="w-full h-9 px-3 border rounded-lg text-xs">
+          </div>
         </div>
-        <button type="submit" class="w-full h-10 bg-primary text-white font-bold rounded-xl mt-3 hover:bg-primary-container">
-          Simpan Data BOSP
-        </button>
+        <div>
+          <label class="block mb-1">Catatan Verifikasi Dinas</label>
+          <input type="text" id="admBospSpj" placeholder="Contoh: Berkas SPJ lengkap dan sesuai juknis" class="w-full h-9 px-3 border rounded-lg text-xs">
+        </div>
+        <div class="pt-2 flex gap-2">
+          <button type="button" onclick="closeModal('modalAddBosp')" class="w-1/3 h-10 border rounded-xl hover:bg-slate-100 font-bold">Batal</button>
+          <button type="submit" id="btnSubmitBosp" class="w-2/3 h-10 bg-primary text-white font-bold rounded-xl hover:bg-primary-container shadow-md">
+            Simpan Data BOSP &amp; SPJ
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: TAMBAH PENGGUNA BARU (ADMIN SEKOLAH)
+       ======================================================================== -->
+  <div id="modalAddUser" class="modal-overlay hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal('modalAddUser')" class="absolute top-6 right-6 text-slate-400 hover:text-slate-700">
+        <span class="material-symbols-outlined text-2xl">close</span>
+      </button>
+
+      <div class="flex items-center gap-2.5 mb-4 border-b pb-3">
+        <div class="w-10 h-10 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center font-bold">
+          <span class="material-symbols-outlined">person_add</span>
+        </div>
+        <div>
+          <h4 class="font-extrabold text-slate-900 text-sm">Pendaftaran Akun Admin Sekolah</h4>
+          <p class="text-[11px] text-slate-500 font-medium">Beri hak akses operator sekolah untuk menginput SPJ &amp; RKAS</p>
+        </div>
+      </div>
+
+      <form id="formAddUser" onsubmit="handleSaveUserAdmin(event)" class="space-y-3 text-xs font-bold text-slate-700">
+        <input type="hidden" id="admUserId">
+        <input type="hidden" id="admUserRow">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block mb-1 text-slate-600">Username Login <span class="text-rose-500">*</span></label>
+            <input type="text" id="admUserUsername" required placeholder="Contoh: sdn1asera atau npsn" class="w-full h-9 px-3 border rounded-xl text-xs bg-slate-50 focus:bg-white">
+          </div>
+          <div>
+            <label class="block mb-1 text-slate-600">Password Akun <span class="text-rose-500">*</span></label>
+            <input type="text" id="admUserPassword" required placeholder="Minimal 6 karakter" class="w-full h-9 px-3 border rounded-xl text-xs bg-slate-50 focus:bg-white">
+          </div>
+        </div>
+
+        <div>
+          <label class="block mb-1 text-slate-600">Nama Satuan Pendidikan (Sekolah) <span class="text-rose-500">*</span></label>
+          <input type="text" id="admUserSekolah" required placeholder="Contoh: SDN 1 Asera" class="w-full h-9 px-3 border rounded-xl text-xs bg-slate-50 focus:bg-white">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block mb-1 text-slate-600">NPSN Sekolah <span class="text-rose-500">*</span></label>
+            <input type="text" id="admUserNpsn" required placeholder="8 digit NPSN" class="w-full h-9 px-3 border rounded-xl text-xs bg-slate-50 focus:bg-white">
+          </div>
+          <div>
+            <label class="block mb-1 text-slate-600">Jenjang Pendidikan</label>
+            <select id="admUserJenjang" class="w-full h-9 px-3 border rounded-xl text-xs bg-white">
+              <option value="SD">SD (Sekolah Dasar)</option>
+              <option value="SMP">SMP (Sekolah Menengah Pertama)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block mb-1 text-slate-600">Kecamatan Domisili Sekolah</label>
+          <select id="admUserKecamatan" class="w-full h-9 px-3 border rounded-xl text-xs bg-white">
+            <option value="Asera">Asera</option>
+            <option value="Andowia">Andowia</option>
+            <option value="Molawe">Molawe</option>
+            <option value="Lasolo">Lasolo</option>
+            <option value="Lasolo Kepulauan">Lasolo Kepulauan</option>
+            <option value="Lembo">Lembo</option>
+            <option value="Sawa">Sawa</option>
+            <option value="Motui">Motui</option>
+            <option value="Wiwirano">Wiwirano</option>
+            <option value="Landawe">Landawe</option>
+            <option value="Oheo">Oheo</option>
+            <option value="Langgikima">Langgikima</option>
+            <option value="Wawolesea">Wawolesea</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block mb-1 text-slate-600">Nama Operator / Bendahara</label>
+            <input type="text" id="admUserOperator" placeholder="Nama lengkap petugas" class="w-full h-9 px-3 border rounded-xl text-xs bg-slate-50 focus:bg-white">
+          </div>
+          <div>
+            <label class="block mb-1 text-slate-600">Nomor WhatsApp Aktif</label>
+            <input type="tel" id="admUserWa" placeholder="08xxxxxxxxxx" class="w-full h-9 px-3 border rounded-xl text-xs bg-slate-50 focus:bg-white">
+          </div>
+        </div>
+
+        <div class="pt-3 flex gap-2">
+          <button type="button" onclick="closeModal('modalAddUser')" class="w-1/3 h-10 border rounded-xl hover:bg-slate-100 font-bold">Batal</button>
+          <button type="submit" id="btnSubmitUser" class="w-2/3 h-10 bg-purple-700 hover:bg-purple-800 text-white font-bold rounded-xl shadow-md">Simpan Akun Pengguna</button>
+        </div>
+      </form>
+    </div>
+  </div>
       </form>
     </div>
   </div>
@@ -1850,6 +2018,346 @@
 
       </div>
 
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: SURAT REKOMENDASI PENCAIRAN DANA BOSP (RESMI KOP + QR VERIFIKASI)
+       ======================================================================== -->
+  <div id="modalRekomendasiBosp" class="modal-overlay hidden">
+    <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] overflow-y-auto p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-4 border-b mb-6 no-print">
+        <div class="flex items-center gap-2">
+          <span class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+            <span class="material-symbols-outlined text-[18px]">verified</span>
+          </span>
+          <div>
+            <h4 class="font-extrabold text-slate-800 text-sm">Surat Rekomendasi Pencairan Dana BOSP</h4>
+            <p class="text-[11px] text-slate-500">Diterbitkan resmi oleh Dinas Pendidikan dan Kebudayaan Kab. Konawe Utara</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="window.print()" class="px-4 py-2 bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md hover:bg-emerald-800 flex items-center gap-1.5 active:scale-95 transition-all">
+            <span class="material-symbols-outlined text-[16px]">print</span>
+            <span>Cetak / Unduh PDF</span>
+          </button>
+          <button onclick="closeModal('modalRekomendasiBosp')" class="text-slate-400 hover:text-slate-700">
+            <span class="material-symbols-outlined text-2xl">close</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lembar A4 Cetak Surat Rekomendasi -->
+      <div class="a4-print-sheet bg-white p-8 border border-slate-200 rounded-xl shadow-sm text-slate-900 font-sans leading-relaxed">
+        
+        <!-- Kop Resmi Double Border -->
+        <div class="kop-double-border flex items-center justify-between text-center pb-3 border-b-4 border-double border-slate-900 mb-6">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/e/ec/Lambang_Kabupaten_Konawe_Utara.png" class="logo-pemkab-dynamic h-20 w-auto" alt="Pemkab Konawe Utara">
+          <div class="flex-1 px-4 text-center">
+            <h5 class="text-[14px] font-bold tracking-wider m-0 uppercase">PEMERINTAH KABUPATEN KONAWE UTARA</h5>
+            <h4 class="text-[18px] font-black m-0 uppercase tracking-wide">DINAS PENDIDIKAN DAN KEBUDAYAAN</h4>
+            <h5 class="text-[14px] font-bold text-[#006195] m-0">BIDANG PEMBINAAN PENDIDIKAN DASAR</h5>
+            <p class="text-[10px] text-slate-600 m-0 mt-1 app-alamat-dynamic">Kompleks Perkantoran Pemerintah Daerah Kab. Konawe Utara, Wanggudu</p>
+            <p class="text-[10px] text-slate-600 m-0">Laman Resmi: https://sahbinbarqi542-commits.github.io/SI-DIKDAS/ | Surel: dikdas@konutkab.go.id</p>
+          </div>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/9/9c/Logo_of_Ministry_of_Education_and_Culture_of_Republic_of_Indonesia.svg" class="logo-utama-dynamic h-20 w-auto" alt="Tut Wuri Handayani">
+        </div>
+
+        <!-- Heading Surat Rekomendasi -->
+        <div class="text-center my-6">
+          <h4 class="font-black text-base uppercase tracking-wider underline">SURAT REKOMENDASI PENCAIRAN DANA BOSP</h4>
+          <p class="text-xs font-bold text-slate-700 mt-1">Nomor: <span id="rekSuratNomor" class="font-mono text-primary font-bold">421.2/105/DISDIKBUD-DIKDAS/2026</span></p>
+        </div>
+
+        <!-- Isi Surat -->
+        <div class="space-y-4 text-xs text-justify">
+          <p>
+            Berdasarkan Peraturan Menteri Pendidikan, Kebudayaan, Riset, dan Teknologi Republik Indonesia tentang Petunjuk Teknis Pengelolaan Dana Bantuan Operasional Satuan Pendidikan (BOSP), serta menindaklanjuti hasil verifikasi dan validasi Laporan Pertanggungjawaban (SPJ) BOSP oleh Tim Manajemen Dana BOSP Dinas Pendidikan dan Kebudayaan Kabupaten Konawe Utara, dengan ini Kepala Dinas Pendidikan dan Kebudayaan Kabupaten Konawe Utara memberikan <strong>REKOMENDASI PENCAIRAN DANA BOSP</strong> kepada:
+          </p>
+
+          <div class="my-4 px-6 py-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2 text-xs">
+            <div class="grid grid-cols-3">
+              <span class="font-bold text-slate-600">Nama Satuan Pendidikan</span>
+              <span class="col-span-2 font-bold text-slate-900">: <span id="rekSekolahNama">-</span></span>
+            </div>
+            <div class="grid grid-cols-3">
+              <span class="font-bold text-slate-600">Nomor Pokok Sekolah Nasional (NPSN)</span>
+              <span class="col-span-2 font-mono font-bold text-slate-900">: <span id="rekSekolahNpsn">-</span></span>
+            </div>
+            <div class="grid grid-cols-3">
+              <span class="font-bold text-slate-600">Jenjang Pendidikan / Kecamatan</span>
+              <span class="col-span-2 font-bold text-slate-900">: <span id="rekSekolahJenjang">-</span> / Kec. <span id="rekSekolahKecamatan">-</span></span>
+            </div>
+            <div class="grid grid-cols-3">
+              <span class="font-bold text-slate-600">Tahap Penyaluran / Tahun Anggaran</span>
+              <span class="col-span-2 font-bold text-slate-900">: <span id="rekTahap">-</span> Tahun Anggaran <span id="rekTahun">-</span></span>
+            </div>
+            <div class="grid grid-cols-3">
+              <span class="font-bold text-slate-600">Nilai Alokasi / Rekomendasi Cair</span>
+              <span class="col-span-2 font-black text-emerald-700 text-sm">: <span id="rekNominal">Rp 0</span></span>
+            </div>
+            <div class="grid grid-cols-3">
+              <span class="font-bold text-slate-600">Status Laporan SPJ</span>
+              <span class="col-span-2 font-bold text-emerald-800">: <span class="px-2 py-0.5 bg-emerald-100 rounded text-[11px]">SPJ Lengkap &amp; Terverifikasi Sah</span></span>
+            </div>
+          </div>
+
+          <p>
+            Menerangkan bahwa Satuan Pendidikan tersebut di atas telah menyelesaikan seluruh kewajiban administrasi pelaporan pertanggungjawaban penggunaan dana BOSP (SPJ) dengan <strong>LENGKAP, BENAR, dan TERTIB</strong> sesuai ketentuan yang berlaku.
+          </p>
+          <p>
+            Sehubungan dengan hal tersebut, satuan pendidikan yang bersangkutan dinyatakan <strong>MEMENUHI SYARAT dan DIBERIKAN REKOMENDASI</strong> untuk melakukan proses penarikan / pencairan Dana BOSP pada Bank Penyalur resmi (Bank Sultra / BRI).
+          </p>
+          <p>
+            Demikian Surat Rekomendasi ini dibuat dengan sebenarnya untuk dipergunakan sebagaimana mestinya.
+          </p>
+        </div>
+
+        <!-- Tanda Tangan & QR HMAC -->
+        <div class="flex justify-between items-end mt-12 pt-6 text-xs">
+          <div class="text-center">
+            <div class="p-3 border-2 border-dashed border-slate-300 rounded-2xl bg-slate-50 inline-block text-center">
+              <div class="w-20 h-20 bg-white border border-slate-200 rounded-xl flex items-center justify-center mx-auto mb-1 text-slate-800">
+                <span class="material-symbols-outlined text-4xl">qr_code_2</span>
+              </div>
+              <div class="text-[9px] font-black text-slate-700 tracking-wider">SI-DIKDAS VERIFIED</div>
+              <div class="text-[8px] text-slate-400 font-mono" id="rekQrCodeText">HMAC-SHA256 DIGITAL SIGN</div>
+            </div>
+            <div class="text-[9px] text-slate-500 mt-1">Pindai QR untuk verifikasi keaslian</div>
+          </div>
+
+          <div class="text-center" style="min-width: 260px;">
+            <p class="mb-1 text-slate-700">Wanggudu, <span id="rekTanggalText">-</span></p>
+            <p class="mb-14 font-bold text-slate-800 leading-tight">
+              An. KEPALA DINAS PENDIDIKAN DAN KEBUDAYAAN<br>
+              Kepala Bidang Pembinaan Dikdas,
+            </p>
+            <h5 class="font-black underline text-sm mb-0 text-slate-900" id="rekSignerName">H. Sahbin, S.Pd., M.Si.</h5>
+            <p class="text-slate-600 font-mono text-[11px]" id="rekSignerNip">NIP. 19740815 199803 1 005</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: PORTAL SATUAN PENDIDIKAN (KHUSUS ADMIN SEKOLAH)
+       ======================================================================== -->
+  <div id="modalSekolahPanel" class="modal-overlay hidden">
+    <div class="bg-white rounded-3xl max-w-5xl w-full h-[92vh] flex flex-col shadow-2xl overflow-hidden relative">
+      
+      <!-- Header Portal Sekolah -->
+      <div class="bg-gradient-to-r from-teal-800 via-teal-700 to-sky-800 text-white p-5 flex items-center justify-between shrink-0 shadow-md">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
+            <span class="material-symbols-outlined text-white text-2xl">school</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-200 border border-emerald-300/30 text-[10px] font-extrabold uppercase">
+                Portal Mandiri Satuan Pendidikan
+              </span>
+              <span class="text-xs text-white/70 font-mono" id="sekolahHeaderNpsn">NPSN: -</span>
+            </div>
+            <h3 class="text-base font-black tracking-tight" id="sekolahHeaderNama">Nama Satuan Pendidikan</h3>
+            <p class="text-xs text-white/80" id="sekolahHeaderKecamatan">Kecamatan -, Kab. Konawe Utara</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="loadSekolahData()" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold border border-white/20 flex items-center gap-1 active:scale-95">
+            <span class="material-symbols-outlined text-[16px]">sync</span>
+            <span>Segarkan</span>
+          </button>
+          <button onclick="handleAdminLogout()" class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1 active:scale-95">
+            <span class="material-symbols-outlined text-[16px]">logout</span>
+            <span>Keluar Portal</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Bilah Navigasi Tab Sekolah -->
+      <div class="bg-slate-100 border-b border-slate-200 px-6 py-2.5 flex items-center justify-between gap-3 shrink-0">
+        <div class="flex items-center gap-2">
+          <button id="tabBtnSekolahSpj" onclick="switchSekolahTab('spj')" class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all bg-white text-teal-800 shadow-sm border border-slate-200 flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[16px]">receipt_long</span>
+            <span>1. Pelaporan SPJ Dana BOSP &amp; Rekomendasi</span>
+          </button>
+          <button id="tabBtnSekolahRkas" onclick="switchSekolahTab('rkas')" class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all bg-transparent text-slate-600 hover:text-teal-800 flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[16px]">account_balance_wallet</span>
+            <span>2. Pengajuan &amp; Dokumen RKAS</span>
+          </button>
+        </div>
+        <div class="text-[11px] text-slate-500 font-medium hidden sm:inline">
+          Operator: <span id="sekolahHeaderOperator" class="font-bold text-slate-700">-</span>
+        </div>
+      </div>
+
+      <!-- Konten Tab Sekolah -->
+      <div class="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-6">
+        
+        <!-- =================== KONTEN TAB 1: SPJ BOSP =================== -->
+        <div id="sekolahTabSpj" class="space-y-6">
+          
+          <!-- Banner Rekomendasi Cair Jika Ada yang Diterima -->
+          <div id="sekolahBannerRekomendasi" class="hidden p-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl">verified</span>
+              </span>
+              <div>
+                <h5 class="font-black text-sm">SPJ Anda Telah Diterima &amp; Terverifikasi Sah!</h5>
+                <p class="text-xs text-emerald-100">Surat Rekomendasi Pencairan resmi dari Dinas telah terbit dan siap dicetak.</p>
+              </div>
+            </div>
+            <button onclick="downloadLatestRekomendasi()" class="px-4 py-2 bg-white text-emerald-900 rounded-xl font-bold text-xs shadow hover:bg-emerald-50 flex items-center gap-1.5 active:scale-95">
+              <span class="material-symbols-outlined text-[16px]">download</span>
+              <span>Unduh Surat Rekomendasi</span>
+            </button>
+          </div>
+
+          <!-- Form Input / Unggah Laporan SPJ Baru -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <h4 class="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2">
+              <span class="material-symbols-outlined text-teal-700 text-[20px]">upload_file</span>
+              Unggah Laporan Pertanggungjawaban (SPJ) Dana BOSP
+            </h4>
+            
+            <form id="formSekolahSpj" onsubmit="handleSekolahSubmitSpj(event)" class="space-y-3 text-xs font-bold text-slate-700">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label class="block mb-1 text-slate-600">Tahun Anggaran</label>
+                  <input type="number" id="sekSpjTahun" value="2026" required class="w-full h-9 px-3 border rounded-xl bg-slate-50">
+                </div>
+                <div>
+                  <label class="block mb-1 text-slate-600">Tahap Pencairan BOSP</label>
+                  <select id="sekSpjTahap" class="w-full h-9 px-3 border rounded-xl bg-white">
+                    <option value="Tahap 1">Tahap 1 (Januari - Juni)</option>
+                    <option value="Tahap 2">Tahap 2 (Juli - Desember)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block mb-1 text-slate-600">Alokasi Dana Tahap (Rp)</label>
+                  <input type="number" id="sekSpjAlokasi" placeholder="Contoh: 45000000" required class="w-full h-9 px-3 border rounded-xl bg-slate-50">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block mb-1 text-slate-600">Link Berkas SPJ Lengkap (Google Drive / PDF) <span class="text-rose-500">*</span></label>
+                  <input type="url" id="sekSpjUrl" required placeholder="https://drive.google.com/... (pastikan akses link dapat dilihat dinas)" class="w-full h-9 px-3 border rounded-xl bg-slate-50">
+                </div>
+                <div>
+                  <label class="block mb-1 text-slate-600">Catatan / Ringkasan Realisasi Belanja</label>
+                  <input type="text" id="sekSpjCatatan" placeholder="Contoh: Realisasi buku tematik, ATK, dan sarana IT" class="w-full h-9 px-3 border rounded-xl bg-slate-50">
+                </div>
+              </div>
+
+              <div class="pt-2 flex justify-end">
+                <button type="submit" id="btnSubmitSekolahSpj" class="px-5 py-2.5 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl shadow flex items-center gap-1.5 active:scale-95">
+                  <span class="material-symbols-outlined text-[16px]">send</span>
+                  <span>Kirim Laporan SPJ ke Dinas</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Tabel Riwayat SPJ Satuan Pendidikan -->
+          <div class="bg-white rounded-2xl border border-slate-200 overflow-x-auto shadow-sm">
+            <div class="p-4 border-b border-slate-200 flex items-center justify-between">
+              <h5 class="font-bold text-slate-900 text-xs">Riwayat Laporan SPJ &amp; Status Rekomendasi</h5>
+              <span class="text-[11px] text-slate-500">Diverifikasi oleh Tim BOSP Dinas Dikbud Konut</span>
+            </div>
+            <table class="w-full text-xs text-left">
+              <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[11px] border-b">
+                <tr>
+                  <th class="p-3 text-center">No</th>
+                  <th class="p-3">Tahun / Tahap</th>
+                  <th class="p-3">Alokasi Dana</th>
+                  <th class="p-3">Berkas SPJ</th>
+                  <th class="p-3 text-center">Status Verifikasi</th>
+                  <th class="p-3">Catatan Dinas</th>
+                  <th class="p-3 text-center">Aksi / Surat Rekomendasi</th>
+                </tr>
+              </thead>
+              <tbody id="tbodySekolahSpj">
+                <tr><td colspan="7" class="text-center py-4 text-slate-400">Belum ada riwayat laporan SPJ.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+        <!-- =================== KONTEN TAB 2: RKAS SEKOLAH =================== -->
+        <div id="sekolahTabRkas" class="hidden space-y-6">
+          
+          <!-- Form Input RKAS Baru -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <h4 class="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2">
+              <span class="material-symbols-outlined text-teal-700 text-[20px]">account_balance_wallet</span>
+              Pengajuan Rencana Kegiatan dan Anggaran Sekolah (RKAS)
+            </h4>
+            
+            <form id="formSekolahRkas" onsubmit="handleSekolahSubmitRkas(event)" class="space-y-3 text-xs font-bold text-slate-700">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block mb-1 text-slate-600">Tahun Anggaran RKAS</label>
+                  <input type="number" id="sekRkasTahun" value="2026" required class="w-full h-9 px-3 border rounded-xl bg-slate-50">
+                </div>
+                <div>
+                  <label class="block mb-1 text-slate-600">Total Pagu Anggaran RKAS (Rp) <span class="text-rose-500">*</span></label>
+                  <input type="number" id="sekRkasAnggaran" placeholder="Contoh: 95000000" required class="w-full h-9 px-3 border rounded-xl bg-slate-50">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block mb-1 text-slate-600">Link Berkas RKAS (Excel / PDF / Drive) <span class="text-rose-500">*</span></label>
+                  <input type="url" id="sekRkasUrl" required placeholder="https://drive.google.com/file/d/..." class="w-full h-9 px-3 border rounded-xl bg-slate-50">
+                </div>
+                <div>
+                  <label class="block mb-1 text-slate-600">Keterangan / Uraian Rencana Kerja</label>
+                  <input type="text" id="sekRkasKeterangan" placeholder="Contoh: RKAS Perubahan Tahun 2026 berdasarkan Rapor Pendidikan" class="w-full h-9 px-3 border rounded-xl bg-slate-50">
+                </div>
+              </div>
+
+              <div class="pt-2 flex justify-end">
+                <button type="submit" id="btnSubmitSekolahRkas" class="px-5 py-2.5 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl shadow flex items-center gap-1.5 active:scale-95">
+                  <span class="material-symbols-outlined text-[16px]">send</span>
+                  <span>Simpan &amp; Ajukan RKAS</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Tabel Riwayat RKAS Satuan Pendidikan -->
+          <div class="bg-white rounded-2xl border border-slate-200 overflow-x-auto shadow-sm">
+            <div class="p-4 border-b border-slate-200 flex items-center justify-between">
+              <h5 class="font-bold text-slate-900 text-xs">Daftar Dokumen RKAS Sekolah</h5>
+              <span class="text-[11px] text-slate-500">Tersinkronisasi dengan Database Dinas</span>
+            </div>
+            <table class="w-full text-xs text-left">
+              <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[11px] border-b">
+                <tr>
+                  <th class="p-3 text-center">No</th>
+                  <th class="p-3">Tahun Anggaran</th>
+                  <th class="p-3">Pagu Total RKAS</th>
+                  <th class="p-3">Keterangan</th>
+                  <th class="p-3">Berkas Dokumen</th>
+                  <th class="p-3 text-center">Status RKAS</th>
+                  <th class="p-3">Catatan Dinas</th>
+                </tr>
+              </thead>
+              <tbody id="tbodySekolahRkas">
+                <tr><td colspan="7" class="text-center py-4 text-slate-400">Belum ada dokumen RKAS yang diajukan.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+      </div>
     </div>
   </div>
 

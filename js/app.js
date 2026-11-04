@@ -12,6 +12,8 @@
 // State Global
 let currentAdminToken = sessionStorage.getItem('SI_DIKDAS_TOKEN') || null;
 let currentAdminUser = sessionStorage.getItem('SI_DIKDAS_USER') || null;
+let currentUserRole = sessionStorage.getItem('SI_DIKDAS_ROLE') || 'ADMIN_UTAMA';
+let currentUserData = JSON.parse(sessionStorage.getItem('SI_DIKDAS_USER_DATA') || '{}');
 let appConfigCache = null;
 let bospCache = [];
 let pipCache = [];
@@ -19,6 +21,8 @@ let sarprasCache = [];
 let ruangBelajarCache = [];
 let activeRbCategory = 'Semua';
 let newsCache = [];
+let usersCache = [];
+let rkasCache = [];
 let daftarSekolahCache = [];
 let sekolahPerKecamatanCache = {};
 let chartBospObj = null;
@@ -248,11 +252,15 @@ async function finishSarprasSubmit(payload, btn) {
 }
 
 /**
- * 4. ADMIN AUTHENTICATION (SINGLE ADMIN)
+ * 4. ADMIN & SEKOLAH AUTHENTICATION
  */
 function openAdminModal() {
   if (currentAdminToken) {
-    showAdminDashboard();
+    if (currentUserRole === 'ADMIN_SEKOLAH') {
+      showSekolahDashboard(currentUserData);
+    } else {
+      showAdminDashboard();
+    }
   } else {
     document.getElementById('modalAdminLogin').classList.remove('hidden');
   }
@@ -274,10 +282,20 @@ async function handleAdminLogin(e) {
   if (res && res.success && res.token) {
     currentAdminToken = res.token;
     currentAdminUser = res.user.username;
+    currentUserRole = res.user.role || 'ADMIN_UTAMA';
+    currentUserData = res.user || {};
+
     sessionStorage.setItem('SI_DIKDAS_TOKEN', res.token);
     sessionStorage.setItem('SI_DIKDAS_USER', res.user.username);
+    sessionStorage.setItem('SI_DIKDAS_ROLE', currentUserRole);
+    sessionStorage.setItem('SI_DIKDAS_USER_DATA', JSON.stringify(currentUserData));
+
     closeModal('modalAdminLogin');
-    showAdminDashboard();
+    if (currentUserRole === 'ADMIN_SEKOLAH') {
+      showSekolahDashboard(currentUserData);
+    } else {
+      showAdminDashboard();
+    }
   } else {
     // Deteksi jika pengguna menguji secara offline/lokal atau URL GAS belum di-deploy
     if (GAS_URL.includes('GANTI_DENGAN_DEPLOYMENT_URL_ANDA') || (res && res.message && (res.message.toLowerCase().includes('fetch') || res.message.toLowerCase().includes('network')))) {
@@ -285,33 +303,49 @@ async function handleAdminLogin(e) {
         const demoToken = 'DEMO_ADMIN_TOKEN_' + Date.now();
         currentAdminToken = demoToken;
         currentAdminUser = 'admin';
+        currentUserRole = 'ADMIN_UTAMA';
+        currentUserData = { username: 'admin', role: 'ADMIN_UTAMA' };
+
         sessionStorage.setItem('SI_DIKDAS_TOKEN', demoToken);
         sessionStorage.setItem('SI_DIKDAS_USER', 'admin');
+        sessionStorage.setItem('SI_DIKDAS_ROLE', 'ADMIN_UTAMA');
+        sessionStorage.setItem('SI_DIKDAS_USER_DATA', JSON.stringify(currentUserData));
+
         closeModal('modalAdminLogin');
         showAdminDashboard();
         alert("✅ Login Berhasil (Mode Pratinjau / Demo)!\n\nAnda dapat menjelajahi dan menguji seluruh fitur Panel Admin.\n\nTips: Untuk menghubungkan dengan database live Google Sheets, pastikan Anda telah men-deploy backend/Kode.gs dan menempelkan Web App URL ke file js/config.js.");
         return;
       }
     }
-    alert((res && res.message) ? res.message : "Username atau kata sandi salah.\nDefault: admin / dikdas123");
+    alert((res && res.message) ? res.message : "Username atau kata sandi salah.\nDefault Admin: admin / dikdas123");
   }
 }
 
 function checkAdminLoginStatus() {
   if (currentAdminToken) {
-    document.querySelectorAll('.btn-admin-label').forEach(el => el.innerText = "Panel Admin");
+    const label = (currentUserRole === 'ADMIN_SEKOLAH') ? "Portal Sekolah" : "Panel Admin";
+    document.querySelectorAll('.btn-admin-label').forEach(el => el.innerText = label);
   }
 }
 
 function logoutAdmin() {
-  if (confirm("Keluar dari Portal Admin?")) {
+  if (confirm("Keluar dari Portal?")) {
     sessionStorage.removeItem('SI_DIKDAS_TOKEN');
     sessionStorage.removeItem('SI_DIKDAS_USER');
+    sessionStorage.removeItem('SI_DIKDAS_ROLE');
+    sessionStorage.removeItem('SI_DIKDAS_USER_DATA');
     currentAdminToken = null;
     currentAdminUser = null;
+    currentUserRole = 'ADMIN_UTAMA';
+    currentUserData = {};
     closeModal('modalAdminPanel');
+    closeModal('modalSekolahPanel');
     location.reload();
   }
+}
+
+function handleAdminLogout() {
+  logoutAdmin();
 }
 
 function showAdminDashboard() {
@@ -319,6 +353,11 @@ function showAdminDashboard() {
   loadDashboardAnalytics();
   loadAdminBosp();
   loadAdminPip();
+  loadAdminSarpras();
+  loadAdminRuangBelajar();
+  loadAdminNews();
+  loadAdminUsers();
+}
   loadAdminSarpras();
   loadAdminRuangBelajar();
   loadAdminNews();
@@ -352,7 +391,7 @@ function switchAdminSubTab(tabId) {
  */
 async function loadAdminBosp() {
   const tbody = document.getElementById('tbodyAdminBosp');
-  tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-500">Memuat data BOSP...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-500">Memuat data BOSP &amp; SPJ...</td></tr>`;
 
   const res = await callGasApi('getBosp', { token: currentAdminToken });
   bospCache = (res && res.success && Array.isArray(res.data)) ? res.data : [];
@@ -362,7 +401,7 @@ async function loadAdminBosp() {
       <tr>
         <td colspan="8" class="text-center py-8 text-slate-400">
           <span class="material-symbols-outlined text-4xl block text-slate-300 mb-2">folder_open</span>
-          <p class="font-bold text-slate-600">Belum ada data alokasi BOSP.</p>
+          <p class="font-bold text-slate-600">Belum ada data alokasi BOSP &amp; SPJ.</p>
           <p class="text-xs text-slate-400 mt-1">Silakan klik tombol <b>+ Input BOSP Baru</b> di atas untuk menambahkan data manual.</p>
         </td>
       </tr>
@@ -372,19 +411,56 @@ async function loadAdminBosp() {
 
   let html = '';
   bospCache.forEach((r, idx) => {
+    const isApproved = (r.status_spj === 'SPJ Diterima');
+    const isRejected = (r.status_spj === 'SPJ Ditolak');
+    let badgeSpj = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Menunggu Verifikasi</span>`;
+    if (isApproved) {
+      badgeSpj = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1 justify-center"><span class="material-symbols-outlined text-[13px]">verified</span> SPJ Diterima</span>`;
+    } else if (isRejected) {
+      badgeSpj = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800">SPJ Ditolak</span>`;
+    }
+
+    const docLink = r.url_dokumen_spj ? 
+      `<a href="${r.url_dokumen_spj}" target="_blank" class="px-2 py-1 bg-blue-50 text-primary border border-blue-200 rounded-lg text-xs font-bold inline-flex items-center gap-1 hover:bg-blue-100"><span class="material-symbols-outlined text-[13px]">link</span> Berkas SPJ</a>` : 
+      `<span class="text-slate-400 italic text-[11px]">Belum diunggah</span>`;
+
+    const suratRekomendasiBtn = isApproved ?
+      `<button onclick="showRekomendasiBosp('${r.id_bosp}')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm flex items-center gap-1 mx-auto active:scale-95 whitespace-nowrap"><span class="material-symbols-outlined text-[14px]">description</span> Rekomendasi Cair</button>` :
+      `<span class="text-slate-400 italic text-[11px]">Belum Terbit</span>`;
+
     html += `
       <tr class="border-b hover:bg-slate-50">
         <td class="p-3 font-semibold text-center">${idx + 1}</td>
-        <td class="p-3 font-mono font-bold text-primary">${r.npsn || '-'}</td>
-        <td class="p-3 font-bold">${r.nama_sekolah || '-'}</td>
-        <td class="p-3">${r.jenjang || '-'}</td>
-        <td class="p-3">${r.kecamatan || '-'}</td>
-        <td class="p-3 font-bold text-emerald-700">Rp ${Number(r.alokasi_dana || 0).toLocaleString('id-ID')}</td>
-        <td class="p-3"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${r.status_salur === 'Tersalurkan' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${r.status_salur || 'Proses'}</span></td>
+        <td class="p-3">
+          <div class="font-bold text-slate-900">${r.nama_sekolah || '-'}</div>
+          <div class="font-mono text-[11px] text-primary">${r.npsn || '-'}</div>
+        </td>
+        <td class="p-3">
+          <div>${r.kecamatan || '-'}</div>
+          <div class="text-[11px] text-slate-500 font-semibold">${r.jenjang || '-'}</div>
+        </td>
+        <td class="p-3">
+          <div class="font-bold text-emerald-700">Rp ${Number(r.alokasi_dana || 0).toLocaleString('id-ID')}</div>
+          <div class="text-[11px] text-slate-500">${r.tahun || '-'} - ${r.tahap || '-'}</div>
+        </td>
+        <td class="p-3">${docLink}</td>
         <td class="p-3 text-center">
-          <button onclick="deleteBospItem('${r.id_bosp}')" title="Hapus Data BOSP" class="text-rose-600 hover:text-rose-800 font-bold text-xs p-1">
-            <i class="fa-solid fa-trash"></i>
-          </button>
+          ${badgeSpj}
+          ${r.catatan_spj ? `<div class="text-[10px] text-slate-500 mt-1 max-w-[150px] truncate mx-auto" title="${r.catatan_spj}">${r.catatan_spj}</div>` : ''}
+        </td>
+        <td class="p-3 text-center">${suratRekomendasiBtn}</td>
+        <td class="p-3 text-center">
+          <div class="flex items-center justify-center gap-1">
+            <button onclick="verifySpjItem('${r.id_bosp}', 'SPJ Diterima')" title="Terima SPJ &amp; Terbitkan Rekomendasi" class="px-2 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg font-bold text-xs flex items-center gap-0.5 active:scale-95">
+              <span class="material-symbols-outlined text-[14px]">check_circle</span> Terima
+            </button>
+            <button onclick="verifySpjItem('${r.id_bosp}', 'SPJ Ditolak')" title="Tolak SPJ (Minta Perbaikan)" class="px-2 py-1 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg font-bold text-xs flex items-center gap-0.5 active:scale-95">
+              <span class="material-symbols-outlined text-[14px]">cancel</span> Tolak
+            </button>
+            <button onclick="deleteBospItem('${r.id_bosp}')" title="Hapus Data BOSP" class="text-slate-400 hover:text-rose-600 font-bold text-xs p-1">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
         </td>
       </tr>
     `;
@@ -392,9 +468,67 @@ async function loadAdminBosp() {
   tbody.innerHTML = html;
 }
 
+async function verifySpjItem(id, status) {
+  let catatan = '';
+  if (status === 'SPJ Ditolak') {
+    catatan = prompt("Masukkan catatan perbaikan SPJ untuk sekolah ini:", "Kwitansi belanja tahap berjalan belum distempel basah dan perlu perbaikan berkas.");
+    if (catatan === null) return;
+  } else {
+    if (!confirm("Konfirmasi verifikasi: TERIMA SPJ dan otomatis terbitkan Surat Rekomendasi Pencairan resmi Kepala Dinas?")) {
+      return;
+    }
+  }
+
+  const res = await callGasApi('verifySpj', { id, status, catatan }, true);
+  if (res && res.success) {
+    alert("✅ Verifikasi SPJ Berhasil!\nStatus: " + status + (res.nomor_rekomendasi ? "\nNomor Rekomendasi Resmi: " + res.nomor_rekomendasi : ""));
+    loadAdminBosp();
+  } else {
+    alert("Gagal memverifikasi SPJ: " + ((res && res.message) || 'Terjadi kesalahan koneksi'));
+  }
+}
+
+function showRekomendasiBosp(bospId) {
+  const item = bospCache.find(x => String(x.id_bosp) === String(bospId)) ||
+               (window._currentSekolahSpjList && window._currentSekolahSpjList.find(x => String(x.id_bosp) === String(bospId)));
+  if (!item) {
+    alert("Data BOSP / Rekomendasi tidak ditemukan.");
+    return;
+  }
+
+  const nomor = item.nomor_rekomendasi || ('421.2/' + (item._row ? String(item._row + 100) : '105') + '/DISDIKBUD-DIKDAS/' + (item.tahun || new Date().getFullYear()));
+  const tgl = item.tgl_rekomendasi || new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  document.getElementById('rekSuratNomor').innerText = nomor;
+  document.getElementById('rekSekolahNama').innerText = item.nama_sekolah || '-';
+  document.getElementById('rekSekolahNpsn').innerText = item.npsn || '-';
+  document.getElementById('rekSekolahJenjang').innerText = item.jenjang || 'SD';
+  document.getElementById('rekSekolahKecamatan').innerText = item.kecamatan || '-';
+  document.getElementById('rekTahap').innerText = item.tahap || 'Tahap 1';
+  document.getElementById('rekTahun').innerText = item.tahun || new Date().getFullYear();
+  document.getElementById('rekNominal').innerText = 'Rp ' + Number(item.alokasi_dana || 0).toLocaleString('id-ID');
+  document.getElementById('rekTanggalText').innerText = tgl;
+  document.getElementById('rekQrCodeText').innerText = 'SI-DIKDAS-' + (item.id_bosp || 'BOSP') + '-HMAC';
+
+  if (appConfigCache) {
+    if (appConfigCache.nama_kabid_dikdas) document.getElementById('rekSignerName').innerText = appConfigCache.nama_kabid_dikdas;
+    if (appConfigCache.nip_kabid_dikdas) document.getElementById('rekSignerNip').innerText = 'NIP. ' + appConfigCache.nip_kabid_dikdas;
+  }
+
+  openModal('modalRekomendasiBosp');
+}
+
 async function handleSaveBospAdmin(e) {
   e.preventDefault();
+  const btn = document.getElementById('btnSubmitBosp');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = "Menyimpan...";
+  }
+
   const payload = {
+    _row: document.getElementById('admBospRow') ? document.getElementById('admBospRow').value : null,
+    id_bosp: document.getElementById('admBospId') ? document.getElementById('admBospId').value : null,
     tahun: document.getElementById('admBospTahun').value,
     tahap: document.getElementById('admBospTahap').value,
     npsn: document.getElementById('admBospNpsn').value,
@@ -403,12 +537,27 @@ async function handleSaveBospAdmin(e) {
     kecamatan: document.getElementById('admBospKecamatan').value,
     alokasi_dana: document.getElementById('admBospNominal').value,
     status_salur: document.getElementById('admBospStatus').value,
+    status_spj: document.getElementById('admBospStatusSpj') ? document.getElementById('admBospStatusSpj').value : 'Menunggu Verifikasi',
+    url_dokumen_spj: document.getElementById('admBospUrlSpj') ? document.getElementById('admBospUrlSpj').value.trim() : '',
     catatan_spj: document.getElementById('admBospSpj').value
   };
 
   const res = await callGasApi('saveBosp', payload, true);
+  if (btn) {
+    btn.disabled = false;
+    btn.innerText = "Simpan Data BOSP & SPJ";
+  }
+
   if (res.success) {
-    alert("Data BOSP berhasil disimpan!");
+    alert("✅ Data BOSP & SPJ berhasil disimpan!");
+    document.getElementById('formAddBosp').reset();
+    closeModal('modalAddBosp');
+    loadAdminBosp();
+    loadDashboardAnalytics();
+  } else {
+    alert("Gagal: " + res.message);
+  }
+}
     document.getElementById('formAddBosp').reset();
     closeModal('modalAddBosp');
     loadAdminBosp();
@@ -1490,4 +1639,315 @@ function escapeHtml(str) {
 function escapeAttr(str) {
   if (!str) return '';
   return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/**
+ * ============================================================================
+ * 8. MANAJEMEN PENGGUNA (ADMIN SEKOLAH) - DIKELOLA ADMIN DINAS
+ * ============================================================================
+ */
+async function loadAdminUsers() {
+  const tbody = document.getElementById('tbodyAdminUsers');
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-slate-500">Memuat data pengguna...</td></tr>`;
+
+  const res = await callGasApi('getUsers', { token: currentAdminToken });
+  usersCache = (res && res.success && Array.isArray(res.data)) ? res.data : [];
+
+  if (usersCache.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="10" class="text-center py-8 text-slate-400">
+          <span class="material-symbols-outlined text-4xl block text-slate-300 mb-2">person_off</span>
+          <p class="font-bold text-slate-600">Belum ada akun admin sekolah yang terdaftar.</p>
+          <p class="text-xs text-slate-400 mt-1">Klik tombol <b>+ Tambah Admin Sekolah</b> di atas untuk mendaftarkan akun operator sekolah.</p>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  let html = '';
+  usersCache.forEach((u, idx) => {
+    html += `
+      <tr class="border-b hover:bg-slate-50">
+        <td class="p-3 text-center font-semibold">${idx + 1}</td>
+        <td class="p-3 font-mono font-bold text-primary">${escapeHtml(u.username || '-')}</td>
+        <td class="p-3 font-bold text-slate-800">${escapeHtml(u.nama_sekolah || '-')}</td>
+        <td class="p-3 font-mono">${escapeHtml(u.npsn || '-')}</td>
+        <td class="p-3">${escapeHtml(u.jenjang || 'SD')}</td>
+        <td class="p-3">${escapeHtml(u.kecamatan || '-')}</td>
+        <td class="p-3 font-medium">${escapeHtml(u.nama_operator || '-')}</td>
+        <td class="p-3">
+          ${u.no_wa ? `<a href="https://wa.me/${String(u.no_wa).replace(/\D/g,'')}" target="_blank" class="text-emerald-700 hover:underline flex items-center gap-1 font-bold"><i class="fa-brands fa-whatsapp"></i> ${escapeHtml(u.no_wa)}</a>` : '-'}
+        </td>
+        <td class="p-3 text-center">
+          <span class="px-2.5 py-1 rounded-full text-xs font-bold ${u.status === 'Nonaktif' ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'}">
+            ${escapeHtml(u.status || 'Aktif')}
+          </span>
+        </td>
+        <td class="p-3 text-center">
+          <button onclick="deleteUserItem('${u.id_user}')" title="Hapus Pengguna" class="text-rose-600 hover:text-rose-800 font-bold text-xs p-1">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+  tbody.innerHTML = html;
+}
+
+async function handleSaveUserAdmin(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btnSubmitUser');
+  btn.disabled = true;
+  btn.innerText = "Menyimpan...";
+
+  const payload = {
+    _row: document.getElementById('admUserRow') ? document.getElementById('admUserRow').value : null,
+    id: document.getElementById('admUserId') ? document.getElementById('admUserId').value : null,
+    username: document.getElementById('admUserUsername').value.trim(),
+    password: document.getElementById('admUserPassword').value.trim(),
+    nama_sekolah: document.getElementById('admUserSekolah').value.trim(),
+    npsn: document.getElementById('admUserNpsn').value.trim(),
+    jenjang: document.getElementById('admUserJenjang').value,
+    kecamatan: document.getElementById('admUserKecamatan').value,
+    nama_operator: document.getElementById('admUserOperator').value.trim(),
+    no_wa: document.getElementById('admUserWa').value.trim()
+  };
+
+  const res = await callGasApi('saveUser', payload, true);
+  btn.disabled = false;
+  btn.innerText = "Simpan Akun Pengguna";
+
+  if (res && res.success) {
+    alert("✅ Akun Admin Sekolah berhasil didaftarkan!\n\nOperator sekarang dapat login di portal menggunakan:\nUsername: " + payload.username + "\nPassword: " + payload.password);
+    document.getElementById('formAddUser').reset();
+    closeModal('modalAddUser');
+    loadAdminUsers();
+  } else {
+    alert("Gagal menyimpan akun: " + ((res && res.message) || 'Terjadi kesalahan'));
+  }
+}
+
+async function deleteUserItem(id) {
+  if (confirm("Apakah Anda yakin ingin menghapus akun admin sekolah ini?")) {
+    const res = await callGasApi('deleteUser', { id }, true);
+    if (res && res.success) {
+      alert("Akun pengguna berhasil dihapus.");
+      loadAdminUsers();
+    } else {
+      alert("Gagal menghapus akun: " + ((res && res.message) || 'Terjadi kesalahan'));
+    }
+  }
+}
+
+/**
+ * ============================================================================
+ * 9. PORTAL MANDIRI SATUAN PENDIDIKAN (SPJ & RKAS SEKOLAH)
+ * ============================================================================
+ */
+function showSekolahDashboard(user) {
+  document.getElementById('modalSekolahPanel').classList.remove('hidden');
+  document.getElementById('sekolahHeaderNama').innerText = user.nama_sekolah || 'Satuan Pendidikan';
+  document.getElementById('sekolahHeaderNpsn').innerText = 'NPSN: ' + (user.npsn || '-');
+  document.getElementById('sekolahHeaderKecamatan').innerText = 'Kecamatan ' + (user.kecamatan || '-') + ', Kab. Konawe Utara';
+  document.getElementById('sekolahHeaderOperator').innerText = (user.nama_operator || user.username || '-') + (user.no_wa ? ' (' + user.no_wa + ')' : '');
+
+  switchSekolahTab('spj');
+  loadSekolahData();
+}
+
+function switchSekolahTab(tab) {
+  const tabSpj = document.getElementById('sekolahTabSpj');
+  const tabRkas = document.getElementById('sekolahTabRkas');
+  const btnSpj = document.getElementById('tabBtnSekolahSpj');
+  const btnRkas = document.getElementById('tabBtnSekolahRkas');
+
+  if (tab === 'spj') {
+    tabSpj.classList.remove('hidden');
+    tabRkas.classList.add('hidden');
+    btnSpj.className = 'px-4 py-2 rounded-xl text-xs font-extrabold transition-all bg-white text-teal-800 shadow-sm border border-slate-200 flex items-center gap-1.5';
+    btnRkas.className = 'px-4 py-2 rounded-xl text-xs font-extrabold transition-all bg-transparent text-slate-600 hover:text-teal-800 flex items-center gap-1.5';
+  } else {
+    tabSpj.classList.add('hidden');
+    tabRkas.classList.remove('hidden');
+    btnSpj.className = 'px-4 py-2 rounded-xl text-xs font-extrabold transition-all bg-transparent text-slate-600 hover:text-teal-800 flex items-center gap-1.5';
+    btnRkas.className = 'px-4 py-2 rounded-xl text-xs font-extrabold transition-all bg-white text-teal-800 shadow-sm border border-slate-200 flex items-center gap-1.5';
+  }
+}
+
+async function loadSekolahData() {
+  await Promise.all([loadSekolahSpjData(), loadSekolahRkasData()]);
+}
+
+async function loadSekolahSpjData() {
+  const tbody = document.getElementById('tbodySekolahSpj');
+  tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-500">Memuat laporan SPJ...</td></tr>`;
+
+  const res = await callGasApi('getBosp', { token: currentAdminToken });
+  let list = (res && res.success && Array.isArray(res.data)) ? res.data : [];
+  
+  if (currentUserRole === 'ADMIN_SEKOLAH' && currentUserData.npsn) {
+    list = list.filter(r => String(r.npsn) === String(currentUserData.npsn));
+  }
+  window._currentSekolahSpjList = list;
+
+  const hasApproved = list.some(r => r.status_spj === 'SPJ Diterima');
+  const banner = document.getElementById('sekolahBannerRekomendasi');
+  if (banner) {
+    if (hasApproved) banner.classList.remove('hidden');
+    else banner.classList.add('hidden');
+  }
+
+  if (list.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" class="text-center py-8 text-slate-400">
+          <span class="material-symbols-outlined text-4xl block text-slate-300 mb-2">upload_file</span>
+          <p class="font-bold text-slate-600">Belum ada laporan SPJ yang dikirimkan.</p>
+          <p class="text-xs text-slate-400 mt-1">Silakan isi formulir di atas untuk mengunggah berkas Laporan SPJ Dana BOSP Anda.</p>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  let html = '';
+  list.forEach((r, idx) => {
+    const isApproved = (r.status_spj === 'SPJ Diterima');
+    const isRejected = (r.status_spj === 'SPJ Ditolak');
+    let badge = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Menunggu Verifikasi</span>`;
+    if (isApproved) {
+      badge = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1 justify-center"><span class="material-symbols-outlined text-[14px]">verified</span> SPJ Diterima</span>`;
+    } else if (isRejected) {
+      badge = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800">SPJ Ditolak</span>`;
+    }
+
+    html += `
+      <tr class="border-b hover:bg-slate-50">
+        <td class="p-3 text-center font-semibold">${idx + 1}</td>
+        <td class="p-3 font-bold text-slate-800">${escapeHtml(r.tahun || '-')} / ${escapeHtml(r.tahap || '-')}</td>
+        <td class="p-3 font-bold text-emerald-700">Rp ${Number(r.alokasi_dana || 0).toLocaleString('id-ID')}</td>
+        <td class="p-3">
+          ${r.url_dokumen_spj ? `<a href="${escapeAttr(r.url_dokumen_spj)}" target="_blank" class="px-2.5 py-1 bg-blue-50 text-primary border border-blue-200 rounded-lg text-xs font-bold inline-flex items-center gap-1 hover:bg-blue-100"><span class="material-symbols-outlined text-[14px]">link</span> Berkas SPJ</a>` : '<span class="text-slate-400 italic">Tidak ada link</span>'}
+        </td>
+        <td class="p-3 text-center">${badge}</td>
+        <td class="p-3 text-slate-600 text-[11px]">${escapeHtml(r.catatan_spj || '-')}</td>
+        <td class="p-3 text-center">
+          ${isApproved ? `<button onclick="showRekomendasiBosp('${r.id_bosp}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1 mx-auto active:scale-95"><span class="material-symbols-outlined text-[14px]">print</span> Unduh Rekomendasi</button>` : `<span class="text-slate-400 text-[11px] italic">Belum terbit</span>`}
+        </td>
+      </tr>
+    `;
+  });
+  tbody.innerHTML = html;
+}
+
+function downloadLatestRekomendasi() {
+  if (window._currentSekolahSpjList) {
+    const item = window._currentSekolahSpjList.find(r => r.status_spj === 'SPJ Diterima');
+    if (item) showRekomendasiBosp(item.id_bosp);
+  }
+}
+
+async function handleSekolahSubmitSpj(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btnSubmitSekolahSpj');
+  btn.disabled = true;
+  btn.innerText = "Mengirim...";
+
+  const payload = {
+    tahun: document.getElementById('sekSpjTahun').value,
+    tahap: document.getElementById('sekSpjTahap').value,
+    alokasi_dana: document.getElementById('sekSpjAlokasi').value,
+    url_dokumen_spj: document.getElementById('sekSpjUrl').value.trim(),
+    catatan_spj: document.getElementById('sekSpjCatatan').value.trim(),
+    status_salur: 'Tersalurkan',
+    status_spj: 'Menunggu Verifikasi',
+    npsn: currentUserData.npsn,
+    nama_sekolah: currentUserData.nama_sekolah,
+    jenjang: currentUserData.jenjang,
+    kecamatan: currentUserData.kecamatan
+  };
+
+  const res = await callGasApi('saveBosp', payload, true);
+  btn.disabled = false;
+  btn.innerHTML = `<span class="material-symbols-outlined text-[16px]">send</span><span>Kirim Laporan SPJ ke Dinas</span>`;
+
+  if (res && res.success) {
+    alert("✅ Laporan SPJ berhasil terkirim ke Tim Manajemen BOSP Dinas Dikbud Konut!\n\nStatus saat ini: Menunggu Verifikasi. Anda akan melihat tombol 'Unduh Rekomendasi' begitu dinas menyetujuinya.");
+    document.getElementById('formSekolahSpj').reset();
+    loadSekolahSpjData();
+  } else {
+    alert("Gagal mengirim SPJ: " + ((res && res.message) || 'Terjadi kesalahan koneksi'));
+  }
+}
+
+async function loadSekolahRkasData() {
+  const tbody = document.getElementById('tbodySekolahRkas');
+  tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-500">Memuat berkas RKAS...</td></tr>`;
+
+  const res = await callGasApi('getRkas', { token: currentAdminToken, npsn: currentUserData.npsn });
+  const list = (res && res.success && Array.isArray(res.data)) ? res.data : [];
+
+  if (list.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" class="text-center py-8 text-slate-400">
+          <span class="material-symbols-outlined text-4xl block text-slate-300 mb-2">account_balance_wallet</span>
+          <p class="font-bold text-slate-600">Belum ada dokumen RKAS yang diajukan.</p>
+          <p class="text-xs text-slate-400 mt-1">Gunakan formulir di atas untuk mengunggah dokumen RKAS sekolah Anda.</p>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  let html = '';
+  list.forEach((r, idx) => {
+    html += `
+      <tr class="border-b hover:bg-slate-50">
+        <td class="p-3 text-center font-semibold">${idx + 1}</td>
+        <td class="p-3 font-bold text-slate-800">${escapeHtml(r.tahun_anggaran || '-')}</td>
+        <td class="p-3 font-bold text-teal-800">Rp ${Number(r.total_anggaran || 0).toLocaleString('id-ID')}</td>
+        <td class="p-3 text-slate-600">${escapeHtml(r.keterangan || '-')}</td>
+        <td class="p-3">
+          ${r.url_berkas_rkas ? `<a href="${escapeAttr(r.url_berkas_rkas)}" target="_blank" class="px-2.5 py-1 bg-teal-50 text-teal-800 border border-teal-200 rounded-lg text-xs font-bold inline-flex items-center gap-1 hover:bg-teal-100"><span class="material-symbols-outlined text-[14px]">link</span> Berkas RKAS</a>` : '-'}
+        </td>
+        <td class="p-3 text-center"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800">${escapeHtml(r.status_rkas || 'Diajukan')}</span></td>
+        <td class="p-3 text-slate-600 text-[11px]">${escapeHtml(r.catatan_dinas || '-')}</td>
+      </tr>
+    `;
+  });
+  tbody.innerHTML = html;
+}
+
+async function handleSekolahSubmitRkas(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btnSubmitSekolahRkas');
+  btn.disabled = true;
+  btn.innerText = "Menyimpan...";
+
+  const payload = {
+    tahun_anggaran: document.getElementById('sekRkasTahun').value,
+    total_anggaran: document.getElementById('sekRkasAnggaran').value,
+    url_berkas_rkas: document.getElementById('sekRkasUrl').value.trim(),
+    keterangan: document.getElementById('sekRkasKeterangan').value.trim(),
+    npsn: currentUserData.npsn,
+    nama_sekolah: currentUserData.nama_sekolah,
+    jenjang: currentUserData.jenjang,
+    kecamatan: currentUserData.kecamatan
+  };
+
+  const res = await callGasApi('saveRkas', payload, true);
+  btn.disabled = false;
+  btn.innerHTML = `<span class="material-symbols-outlined text-[16px]">send</span><span>Simpan &amp; Ajukan RKAS</span>`;
+
+  if (res && res.success) {
+    alert("✅ Dokumen RKAS berhasil disimpan dan tersinkronisasi ke Dinas Dikbud Konut!");
+    document.getElementById('formSekolahRkas').reset();
+    loadSekolahRkasData();
+  } else {
+    alert("Gagal menyimpan RKAS: " + ((res && res.message) || 'Terjadi kesalahan koneksi'));
+  }
 }

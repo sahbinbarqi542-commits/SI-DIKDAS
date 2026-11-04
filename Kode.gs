@@ -247,6 +247,12 @@ function doGet(e) {
       case 'getRuangBelajar':
         result = handleGetRuangBelajar();
         break;
+      case 'getUsers':
+        result = handleGetUsers(p.token);
+        break;
+      case 'getRkas':
+        result = handleGetRkas(p.token, p.npsn);
+        break;
       default:
         result = { success: false, message: 'Action GET tidak dikenal: ' + action };
     }
@@ -283,8 +289,29 @@ function doPost(e) {
       case 'saveBosp':
         result = handleSaveBosp(data, token);
         break;
+      case 'verifySpj':
+        result = handleVerifySpj(data, token);
+        break;
       case 'deleteBosp':
         result = handleDeleteBosp(data.id || body.id, token);
+        break;
+      case 'getUsers':
+        result = handleGetUsers(token);
+        break;
+      case 'saveUser':
+        result = handleSaveUser(data, token);
+        break;
+      case 'deleteUser':
+        result = handleDeleteUser(data.id || body.id, token);
+        break;
+      case 'getRkas':
+        result = handleGetRkas(token, data.npsn || body.npsn);
+        break;
+      case 'saveRkas':
+        result = handleSaveRkas(data, token);
+        break;
+      case 'deleteRkas':
+        result = handleDeleteRkas(data.id || body.id, token);
         break;
       case 'savePip':
         result = handleSavePip(data, token);
@@ -802,10 +829,55 @@ function handleAdminLogin(username, password) {
     const token = signToken_({ u: username, r: 'ADMIN_UTAMA', i: Date.now(), x: Date.now() + 12 * 3600000 });
     return {
       success: true,
-      message: "Login berhasil! Selamat datang Admin.",
+      message: "Login berhasil! Selamat datang Admin Utama.",
       token: token,
       user: { username: username, role: 'ADMIN_UTAMA' }
     };
+  }
+
+  // Cek apakah akun adalah Admin Sekolah di sheet TB_Users
+  try {
+    const userRows = readSheetAsObjects('TB_Users');
+    const foundUser = userRows.find(function(u) {
+      return String(u.username || '').trim().toLowerCase() === username.toLowerCase() &&
+             String(u.password || '').trim() === password;
+    });
+    if (foundUser) {
+      if (String(foundUser.status || '').toLowerCase() === 'nonaktif') {
+        return { success: false, message: "Akun sekolah Anda dinonaktifkan oleh Dinas. Silakan hubungi Bidang Dikdas." };
+      }
+      delProp_('DARURAT_GAGAL');
+      delProp_('DARURAT_KUNCI_SAMPAI');
+      const token = signToken_({
+        u: foundUser.username,
+        r: 'ADMIN_SEKOLAH',
+        npsn: String(foundUser.npsn || ''),
+        nama_sekolah: String(foundUser.nama_sekolah || ''),
+        jenjang: String(foundUser.jenjang || ''),
+        kecamatan: String(foundUser.kecamatan || ''),
+        nama_operator: String(foundUser.nama_operator || ''),
+        no_wa: String(foundUser.no_wa || ''),
+        i: Date.now(),
+        x: Date.now() + 12 * 3600000
+      });
+      return {
+        success: true,
+        message: "Login berhasil! Selamat datang Admin " + (foundUser.nama_sekolah || foundUser.username),
+        token: token,
+        user: {
+          username: foundUser.username,
+          role: 'ADMIN_SEKOLAH',
+          nama_sekolah: foundUser.nama_sekolah,
+          npsn: foundUser.npsn,
+          jenjang: foundUser.jenjang,
+          kecamatan: foundUser.kecamatan,
+          nama_operator: foundUser.nama_operator,
+          no_wa: foundUser.no_wa
+        }
+      };
+    }
+  } catch (errUser) {
+    Logger.log("Info pengecekan TB_Users saat login: " + errUser.message);
   }
 
   // Record failure
@@ -887,22 +959,312 @@ function handleSaveBosp(payload, token) {
   try {
     lock.waitLock(10000);
     const sh = getSheet('TB_BOSP');
+    const headerRow = sh.getRange(1, 1, 1, Math.max(sh.getLastColumn(), 15)).getValues()[0];
+    if (sh.getLastColumn() < 15 || !headerRow[12]) {
+      sh.getRange(1, 13).setValue('status_spj');
+      sh.getRange(1, 14).setValue('nomor_rekomendasi');
+      sh.getRange(1, 15).setValue('tgl_rekomendasi');
+      sh.getRange(1, 13, 1, 3).setBackground('#0084C9').setFontColor('#FFFFFF').setFontWeight('bold');
+    }
+
+    const npsn = (session.r === 'ADMIN_SEKOLAH') ? session.npsn : (payload.npsn || '');
+    const namaSekolah = (session.r === 'ADMIN_SEKOLAH') ? session.nama_sekolah : (payload.nama_sekolah || '');
+    const jenjang = (session.r === 'ADMIN_SEKOLAH') ? (session.jenjang || 'SD') : (payload.jenjang || 'SD');
+    const kecamatan = (session.r === 'ADMIN_SEKOLAH') ? (session.kecamatan || '') : (payload.kecamatan || '');
+    const defaultStatusSpj = (session.r === 'ADMIN_SEKOLAH') ? 'Menunggu Verifikasi' : (payload.status_spj || 'Menunggu Verifikasi');
+
     if (payload._row && payload._row > 1) {
-      sh.getRange(payload._row, 2, 1, 11).setValues([[
-        payload.tahun, payload.tahap, payload.npsn, payload.nama_sekolah, payload.jenjang,
-        payload.kecamatan, Number(payload.alokasi_dana), payload.status_salur,
-        payload.tgl_cair || '', payload.catatan_spj || '', payload.url_dokumen_spj || ''
+      sh.getRange(payload._row, 2, 1, 14).setValues([[
+        payload.tahun || new Date().getFullYear(),
+        payload.tahap || 'Tahap 1',
+        npsn,
+        namaSekolah,
+        jenjang,
+        kecamatan,
+        Number(payload.alokasi_dana || 0),
+        payload.status_salur || 'Tersalurkan',
+        payload.tgl_cair || '',
+        payload.catatan_spj || '',
+        payload.url_dokumen_spj || '',
+        payload.status_spj || defaultStatusSpj,
+        payload.nomor_rekomendasi || '',
+        payload.tgl_rekomendasi || ''
       ]]);
     } else {
-      const newId = 'BOSP-' + payload.tahun + '-' + Utilities.formatDate(new Date(), "GMT+7", "HHmmss");
+      const newId = 'BOSP-' + (payload.tahun || new Date().getFullYear()) + '-' + Utilities.formatDate(new Date(), "GMT+7", "HHmmss");
       sh.appendRow([
-        newId, payload.tahun, payload.tahap, payload.npsn, payload.nama_sekolah, payload.jenjang,
-        payload.kecamatan, Number(payload.alokasi_dana), payload.status_salur,
-        payload.tgl_cair || '', payload.catatan_spj || '', payload.url_dokumen_spj || ''
+        newId,
+        payload.tahun || new Date().getFullYear(),
+        payload.tahap || 'Tahap 1',
+        npsn,
+        namaSekolah,
+        jenjang,
+        kecamatan,
+        Number(payload.alokasi_dana || 0),
+        payload.status_salur || 'Tersalurkan',
+        payload.tgl_cair || '',
+        payload.catatan_spj || '',
+        payload.url_dokumen_spj || '',
+        defaultStatusSpj,
+        payload.nomor_rekomendasi || '',
+        payload.tgl_rekomendasi || ''
       ]);
     }
     bump('TB_BOSP');
-    return { success: true, message: "Data BOSP berhasil disimpan!" };
+    return { success: true, message: "Data BOSP & SPJ berhasil disimpan!" };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function handleVerifySpj(payload, token) {
+  const session = verifyToken_(token);
+  if (!session || session.r !== 'ADMIN_UTAMA') {
+    return { success: false, message: "Akses verifikasi hanya untuk Admin Utama Dinas." };
+  }
+
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const sh = getSheet('TB_BOSP');
+    const data = sh.getDataRange().getValues();
+    const id = payload.id || payload.id_bosp;
+    const rowIdx = payload._row ? Number(payload._row) : null;
+    let targetRow = -1;
+
+    if (rowIdx && rowIdx > 1 && rowIdx <= data.length) {
+      targetRow = rowIdx;
+    } else {
+      for (let i = 1; i < data.length; i++) {
+        if (String(data[i][0]) === String(id)) {
+          targetRow = i + 1;
+          break;
+        }
+      }
+    }
+
+    if (targetRow === -1) {
+      return { success: false, message: "Data BOSP tidak ditemukan." };
+    }
+
+    if (sh.getLastColumn() < 15) {
+      sh.getRange(1, 13).setValue('status_spj');
+      sh.getRange(1, 14).setValue('nomor_rekomendasi');
+      sh.getRange(1, 15).setValue('tgl_rekomendasi');
+      sh.getRange(1, 13, 1, 3).setBackground('#0084C9').setFontColor('#FFFFFF').setFontWeight('bold');
+    }
+
+    const newStatus = payload.status || 'SPJ Diterima';
+    const catatan = payload.catatan || '';
+    let nomorRekomendasi = payload.nomor_rekomendasi || '';
+    let tglRekomendasi = payload.tgl_rekomendasi || '';
+
+    if (newStatus === 'SPJ Diterima') {
+      if (!nomorRekomendasi) {
+        const tahun = data[targetRow - 1][1] || new Date().getFullYear();
+        const randNum = String(100 + targetRow).padStart(3, '0');
+        nomorRekomendasi = '421.2/' + randNum + '/DISDIKBUD-DIKDAS/' + tahun;
+      }
+      if (!tglRekomendasi) {
+        tglRekomendasi = Utilities.formatDate(new Date(), "GMT+7", "dd/MM/yyyy");
+      }
+    }
+
+    sh.getRange(targetRow, 11).setValue(catatan); // catatan_spj
+    sh.getRange(targetRow, 13).setValue(newStatus); // status_spj
+    sh.getRange(targetRow, 14).setValue(nomorRekomendasi); // nomor_rekomendasi
+    sh.getRange(targetRow, 15).setValue(tglRekomendasi); // tgl_rekomendasi
+
+    bump('TB_BOSP');
+    return {
+      success: true,
+      message: "Status verifikasi SPJ berhasil diperbarui: " + newStatus,
+      status_spj: newStatus,
+      nomor_rekomendasi: nomorRekomendasi,
+      tgl_rekomendasi: tglRekomendasi
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function handleGetUsers(token) {
+  const session = verifyToken_(token);
+  if (!session || session.r !== 'ADMIN_UTAMA') {
+    return { success: false, message: "Akses manajemen pengguna hanya untuk Admin Utama Dinas." };
+  }
+  const rows = readSheetAsObjects('TB_Users');
+  return { success: true, data: rows };
+}
+
+function handleSaveUser(payload, token) {
+  const session = verifyToken_(token);
+  if (!session || session.r !== 'ADMIN_UTAMA') {
+    return { success: false, message: "Akses hanya untuk Admin Utama Dinas." };
+  }
+
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const sh = getSheet('TB_Users');
+    const u = String(payload.username || '').trim();
+    const p = String(payload.password || '').trim();
+    if (!u || !p) {
+      return { success: false, message: "Username dan password wajib diisi." };
+    }
+
+    if (payload._row && payload._row > 1) {
+      sh.getRange(payload._row, 2, 1, 10).setValues([[
+        u,
+        p,
+        payload.nama_sekolah || '',
+        payload.npsn || '',
+        payload.jenjang || 'SD',
+        payload.kecamatan || '',
+        payload.nama_operator || '',
+        payload.no_wa || '',
+        'ADMIN_SEKOLAH',
+        payload.status || 'Aktif'
+      ]]);
+    } else {
+      const data = sh.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        if (String(data[i][1]).toLowerCase() === u.toLowerCase()) {
+          return { success: false, message: "Username '" + u + "' sudah terdaftar. Gunakan username lain." };
+        }
+      }
+      const newId = 'USR-' + Utilities.formatDate(new Date(), "GMT+7", "yyyyMMdd-HHmmss");
+      sh.appendRow([
+        newId,
+        u,
+        p,
+        payload.nama_sekolah || '',
+        payload.npsn || '',
+        payload.jenjang || 'SD',
+        payload.kecamatan || '',
+        payload.nama_operator || '',
+        payload.no_wa || '',
+        'ADMIN_SEKOLAH',
+        payload.status || 'Aktif',
+        Utilities.formatDate(new Date(), "GMT+7", "yyyy-MM-dd HH:mm:ss")
+      ]);
+    }
+    bump('TB_Users');
+    return { success: true, message: "Akun Admin Sekolah berhasil disimpan!" };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function handleDeleteUser(id, token) {
+  const session = verifyToken_(token);
+  if (!session || session.r !== 'ADMIN_UTAMA') {
+    return { success: false, message: "Akses hanya untuk Admin Utama Dinas." };
+  }
+
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const sh = getSheet('TB_Users');
+    const data = sh.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]) === String(id)) {
+        sh.deleteRow(i + 1);
+        bump('TB_Users');
+        return { success: true, message: "Akun pengguna berhasil dihapus." };
+      }
+    }
+    return { success: false, message: "Pengguna tidak ditemukan." };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function handleGetRkas(token, npsn) {
+  const session = verifyToken_(token);
+  if (!session) return { success: false, message: "Sesi tidak valid." };
+
+  const rows = readSheetAsObjects('TB_RKAS');
+  if (session.r === 'ADMIN_SEKOLAH') {
+    const filtered = rows.filter(function(r) { return String(r.npsn) === String(session.npsn); });
+    return { success: true, data: filtered };
+  }
+  if (npsn) {
+    const filtered = rows.filter(function(r) { return String(r.npsn) === String(npsn); });
+    return { success: true, data: filtered };
+  }
+  return { success: true, data: rows };
+}
+
+function handleSaveRkas(payload, token) {
+  const session = verifyToken_(token);
+  if (!session) return { success: false, message: "Sesi tidak valid." };
+
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const sh = getSheet('TB_RKAS');
+    const npsn = (session.r === 'ADMIN_SEKOLAH') ? session.npsn : (payload.npsn || '');
+    const namaSekolah = (session.r === 'ADMIN_SEKOLAH') ? session.nama_sekolah : (payload.nama_sekolah || '');
+    const jenjang = (session.r === 'ADMIN_SEKOLAH') ? (session.jenjang || 'SD') : (payload.jenjang || 'SD');
+    const kecamatan = (session.r === 'ADMIN_SEKOLAH') ? (session.kecamatan || '') : (payload.kecamatan || '');
+
+    if (payload._row && payload._row > 1) {
+      sh.getRange(payload._row, 2, 1, 9).setValues([[
+        payload.tahun_anggaran || new Date().getFullYear(),
+        npsn,
+        namaSekolah,
+        jenjang,
+        kecamatan,
+        Number(payload.total_anggaran || 0),
+        payload.keterangan || '',
+        payload.url_berkas_rkas || '',
+        payload.status_rkas || 'Diajukan'
+      ]]);
+    } else {
+      const newId = 'RKAS-' + (payload.tahun_anggaran || new Date().getFullYear()) + '-' + Utilities.formatDate(new Date(), "GMT+7", "HHmmss");
+      sh.appendRow([
+        newId,
+        payload.tahun_anggaran || new Date().getFullYear(),
+        npsn,
+        namaSekolah,
+        jenjang,
+        kecamatan,
+        Number(payload.total_anggaran || 0),
+        payload.keterangan || '',
+        payload.url_berkas_rkas || '',
+        payload.status_rkas || 'Diajukan',
+        payload.catatan_dinas || '',
+        Utilities.formatDate(new Date(), "GMT+7", "yyyy-MM-dd HH:mm:ss")
+      ]);
+    }
+    bump('TB_RKAS');
+    return { success: true, message: "Data RKAS berhasil disimpan!" };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function handleDeleteRkas(id, token) {
+  const session = verifyToken_(token);
+  if (!session) return { success: false, message: "Sesi tidak valid." };
+
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const sh = getSheet('TB_RKAS');
+    const data = sh.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]) === String(id)) {
+        if (session.r === 'ADMIN_SEKOLAH' && String(data[i][2]) !== String(session.npsn)) {
+          return { success: false, message: "Anda tidak berhak menghapus berkas sekolah lain." };
+        }
+        sh.deleteRow(i + 1);
+        bump('TB_RKAS');
+        return { success: true, message: "Data RKAS berhasil dihapus." };
+      }
+    }
+    return { success: false, message: "Data RKAS tidak ditemukan." };
   } finally {
     lock.releaseLock();
   }
@@ -1124,8 +1486,29 @@ function setupAppEnvironment() {
   let bospSh = ss.getSheetByName('TB_BOSP');
   if (!bospSh) {
     bospSh = ss.insertSheet('TB_BOSP');
-    bospSh.appendRow(['id_bosp', 'tahun', 'tahap', 'npsn', 'nama_sekolah', 'jenjang', 'kecamatan', 'alokasi_dana', 'status_salur', 'tgl_cair', 'catatan_spj', 'url_dokumen_spj']);
-    bospSh.getRange(1, 1, 1, 12).setBackground('#0084C9').setFontColor('#FFFFFF').setFontWeight('bold');
+    bospSh.appendRow(['id_bosp', 'tahun', 'tahap', 'npsn', 'nama_sekolah', 'jenjang', 'kecamatan', 'alokasi_dana', 'status_salur', 'tgl_cair', 'catatan_spj', 'url_dokumen_spj', 'status_spj', 'nomor_rekomendasi', 'tgl_rekomendasi']);
+    bospSh.getRange(1, 1, 1, 15).setBackground('#0084C9').setFontColor('#FFFFFF').setFontWeight('bold');
+  } else if (bospSh.getLastColumn() < 15) {
+    bospSh.getRange(1, 13).setValue('status_spj');
+    bospSh.getRange(1, 14).setValue('nomor_rekomendasi');
+    bospSh.getRange(1, 15).setValue('tgl_rekomendasi');
+    bospSh.getRange(1, 13, 1, 3).setBackground('#0084C9').setFontColor('#FFFFFF').setFontWeight('bold');
+  }
+
+  // Setup TB_Users (Manajemen Akun Admin Sekolah)
+  let userSh = ss.getSheetByName('TB_Users');
+  if (!userSh) {
+    userSh = ss.insertSheet('TB_Users');
+    userSh.appendRow(['id_user', 'username', 'password', 'nama_sekolah', 'npsn', 'jenjang', 'kecamatan', 'nama_operator', 'no_wa', 'role', 'status', 'created_at']);
+    userSh.getRange(1, 1, 1, 12).setBackground('#0084C9').setFontColor('#FFFFFF').setFontWeight('bold');
+  }
+
+  // Setup TB_RKAS (Rencana Kegiatan dan Anggaran Sekolah)
+  let rkasSh = ss.getSheetByName('TB_RKAS');
+  if (!rkasSh) {
+    rkasSh = ss.insertSheet('TB_RKAS');
+    rkasSh.appendRow(['id_rkas', 'tahun_anggaran', 'npsn', 'nama_sekolah', 'jenjang', 'kecamatan', 'total_anggaran', 'keterangan', 'url_berkas_rkas', 'status_rkas', 'catatan_dinas', 'created_at']);
+    rkasSh.getRange(1, 1, 1, 12).setBackground('#0084C9').setFontColor('#FFFFFF').setFontWeight('bold');
   }
 
   // Setup TB_PIP (Tabel Kosong Siap Input Manual)
@@ -1171,7 +1554,7 @@ function setupAppEnvironment() {
  */
 function clearAllDatabaseTables() {
   const ss = getDb();
-  ['TB_BOSP', 'TB_PIP', 'TB_Sarpras', 'TB_Pengumuman', 'TB_RuangBelajar'].forEach(sheetName => {
+  ['TB_BOSP', 'TB_PIP', 'TB_Sarpras', 'TB_Pengumuman', 'TB_RuangBelajar', 'TB_RKAS'].forEach(sheetName => {
     try {
       const sh = ss.getSheetByName(sheetName);
       if (sh && sh.getLastRow() > 1) {
@@ -1186,5 +1569,7 @@ function clearAllDatabaseTables() {
   bump('TB_Sarpras');
   bump('TB_Pengumuman');
   bump('TB_RuangBelajar');
-  Logger.log("✅ Seluruh data transaksi BOSP, PIP, Sarpras, Pengumuman, dan Ruang Belajar telah dikosongkan.");
+  bump('TB_RKAS');
+  bump('TB_Users');
+  Logger.log("✅ Seluruh data transaksi BOSP, PIP, Sarpras, Pengumuman, Ruang Belajar, dan RKAS telah dikosongkan.");
 }
