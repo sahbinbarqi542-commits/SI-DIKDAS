@@ -310,6 +310,12 @@ function doPost(e) {
       case 'deleteRuangBelajar':
         result = handleDeleteRuangBelajar(data.id || body.id, token);
         break;
+      case 'saveNews':
+        result = handleSaveNews(data, token);
+        break;
+      case 'deleteNews':
+        result = handleDeleteNews(data.id || body.id, token);
+        break;
       case 'clearAllData':
         result = handleClearAllData(token);
         break;
@@ -677,7 +683,81 @@ function handleClearAllData(token) {
 
 function handleGetNews() {
   const rows = readSheetAsObjects('TB_Pengumuman');
-  return { success: true, data: rows.filter(r => r.status_tampil === 'PUBLISH') };
+  return { success: true, data: rows.filter(r => !r.status_tampil || r.status_tampil === 'PUBLISH') };
+}
+
+function handleSaveNews(payload, token) {
+  const session = verifyToken_(token);
+  if (!session) return { success: false, message: "Sesi tidak valid." };
+
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    let sh;
+    try {
+      sh = getSheet('TB_Pengumuman');
+    } catch (e) {
+      const ss = getDb();
+      sh = ss.insertSheet('TB_Pengumuman');
+      sh.appendRow(['id_pengumuman', 'tgl_terbit', 'judul', 'kategori', 'isi_ringkas', 'foto_url', 'link_dokumen_url', 'status_tampil']);
+      sh.getRange(1, 1, 1, 8).setBackground('#0084C9').setFontColor('#FFFFFF').setFontWeight('bold');
+    }
+
+    const id = payload.id_pengumuman || ('NEWS-' + Utilities.formatDate(new Date(), "GMT+7", "yyyyMMdd-HHmmss"));
+    const today = payload.tgl_terbit || Utilities.formatDate(new Date(), "GMT+7", "yyyy-MM-dd");
+
+    const data = sh.getDataRange().getValues();
+    let rowIdx = -1;
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]) === String(id)) {
+        rowIdx = i + 1;
+        break;
+      }
+    }
+
+    const rowData = [
+      id,
+      today,
+      payload.judul || 'Pengumuman Resmi',
+      payload.kategori || 'Surat Edaran',
+      payload.isi_ringkas || '',
+      payload.foto_url || '',
+      payload.link_dokumen_url || '',
+      payload.status_tampil || 'PUBLISH'
+    ];
+
+    if (rowIdx > 0) {
+      sh.getRange(rowIdx, 1, 1, 8).setValues([rowData]);
+    } else {
+      sh.appendRow(rowData);
+    }
+    bump('TB_Pengumuman');
+    return { success: true, message: "Berita Warta Edukasi berhasil disimpan & diterbitkan!" };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function handleDeleteNews(id, token) {
+  const session = verifyToken_(token);
+  if (!session) return { success: false, message: "Sesi tidak valid." };
+
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const sh = getSheet('TB_Pengumuman');
+    const data = sh.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]) === String(id)) {
+        sh.deleteRow(i + 1);
+        bump('TB_Pengumuman');
+        return { success: true, message: "Berita Warta Edukasi berhasil dihapus." };
+      }
+    }
+    return { success: false, message: "Berita tidak ditemukan." };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 // Admin Authentication with Brute-Force Lockout

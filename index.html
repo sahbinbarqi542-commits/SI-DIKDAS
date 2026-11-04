@@ -594,63 +594,11 @@
             <span class="text-xs font-semibold text-slate-400">Bidang Pembinaan Dikdas</span>
           </div>
 
-          <div class="space-y-4">
-            <!-- News 1 -->
-            <article class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row gap-5 items-start sm:items-center">
-              <div class="w-full sm:w-28 h-24 rounded-xl overflow-hidden bg-slate-100 shrink-0">
-                <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=400&q=80" alt="BOSP">
-              </div>
-              <div class="flex-1">
-                <div class="flex items-center gap-2 text-[11px] text-slate-400 font-medium mb-1.5">
-                  <span class="px-2 py-0.5 rounded bg-blue-100 text-primary font-bold">Surat Edaran</span>
-                  <span>14 Maret 2026</span>
-                </div>
-                <h4 class="text-sm font-bold text-slate-900 mb-1 hover:text-primary transition-colors cursor-pointer">
-                  Jadwal Batas Akhir Cut-Off Pelaporan Realisasi BOSP Tahap I Tahun 2026
-                </h4>
-                <p class="text-xs text-slate-500 line-clamp-2">
-                  Dihimbau kepada seluruh Bendahara dan Kepala SD/SMP se-Konawe Utara untuk menuntaskan pelaporan SPJ melalui portal SI-DIKDAS paling lambat 31 Maret 2026.
-                </p>
-              </div>
-            </article>
-
-            <!-- News 2 -->
-            <article class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row gap-5 items-start sm:items-center">
-              <div class="w-full sm:w-28 h-24 rounded-xl overflow-hidden bg-slate-100 shrink-0">
-                <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=400&q=80" alt="Sarpras">
-              </div>
-              <div class="flex-1">
-                <div class="flex items-center gap-2 text-[11px] text-slate-400 font-medium mb-1.5">
-                  <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">Sarpras &amp; DAK</span>
-                  <span>11 Maret 2026</span>
-                </div>
-                <h4 class="text-sm font-bold text-slate-900 mb-1 hover:text-primary transition-colors cursor-pointer">
-                  Verifikasi Lapangan Usulan Rehabilitasi Gedung SD Rusak Berat di Konawe Utara
-                </h4>
-                <p class="text-xs text-slate-500 line-clamp-2">
-                  Tim teknis Disdikbud bersama Dinas PUPR Konut telah merampungkan asesmen kelayakan 12 ruang kelas untuk masuk prioritas DAK Fisik reguler 2027.
-                </p>
-              </div>
-            </article>
-
-            <!-- News 3 -->
-            <article class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row gap-5 items-start sm:items-center">
-              <div class="w-full sm:w-28 h-24 rounded-xl overflow-hidden bg-slate-100 shrink-0">
-                <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1509062522246-3755977927d7?w=400&q=80" alt="TIK">
-              </div>
-              <div class="flex-1">
-                <div class="flex items-center gap-2 text-[11px] text-slate-400 font-medium mb-1.5">
-                  <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">Kesiswaan &amp; TIK</span>
-                  <span>08 Maret 2026</span>
-                </div>
-                <h4 class="text-sm font-bold text-slate-900 mb-1 hover:text-primary transition-colors cursor-pointer">
-                  Distribusi 340 Unit Chromebook Tambahan untuk Penguatan Literasi Digital SMP Satap
-                </h4>
-                <p class="text-xs text-slate-500 line-clamp-2">
-                  Memperkecil kesenjangan digital di wilayah pelosok Konawe Utara, bantuan TIK gelombang kedua resmi diserahkan secara simbolis.
-                </p>
-              </div>
-            </article>
+          <!-- Dynamic Container for News Articles -->
+          <div id="containerNewsList" class="space-y-4">
+            <div class="p-6 bg-white rounded-2xl border border-slate-200 text-center text-xs text-slate-400">
+              Memuat Warta Edukasi...
+            </div>
           </div>
         </div>
 
@@ -994,9 +942,13 @@
             <span class="material-symbols-outlined text-[16px]">smart_display</span>
             <span>4. Ruang Belajar</span>
           </button>
+          <button onclick="scrollToAdminSection('admin-section-berita')" class="adm-menu-btn px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-emerald-700 transition-all border border-slate-300 shadow-sm flex items-center gap-1.5 whitespace-nowrap active:scale-95">
+            <span class="material-symbols-outlined text-[16px]">newspaper</span>
+            <span>5. Warta Edukasi</span>
+          </button>
           <button onclick="scrollToAdminSection('admin-section-pengaturan')" class="adm-menu-btn px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-primary transition-all border border-slate-300 shadow-sm flex items-center gap-1.5 whitespace-nowrap active:scale-95">
             <span class="material-symbols-outlined text-[16px]">settings</span>
-            <span>5. Pengaturan &amp; Logo</span>
+            <span>6. Pengaturan &amp; Logo</span>
           </button>
         </div>
 
@@ -1027,6 +979,10 @@
           <button onclick="openModal('modalAddRuangBelajar')" class="px-2.5 py-1 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-300 rounded-lg text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap">
             <span class="material-symbols-outlined text-[14px]">play_lesson</span>
             <span>+ Ruang Belajar</span>
+          </button>
+          <button onclick="openModal('modalAddNews')" class="px-2.5 py-1 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-lg text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap">
+            <span class="material-symbols-outlined text-[14px]">post_add</span>
+            <span>+ Warta Edukasi</span>
           </button>
         </div>
         <div class="text-[11px] text-slate-500 font-medium hidden md:inline">
@@ -1239,12 +1195,49 @@
           </div>
         </div>
 
-        <!-- BAGIAN 5: PENGATURAN IDENTITAS INSTANSI & GANTI LOGO -->
-        <div id="admin-section-pengaturan" class="pt-4 border-t border-slate-200">
+        <!-- BAGIAN 5: LAYANAN WARTA EDUKASI & PENGUMUMAN RESMI DINAS -->
+        <div id="admin-section-berita" class="space-y-4 pt-4 border-t border-slate-200 scroll-mt-4">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200">
+            <div>
+              <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-emerald-600 text-[20px]">newspaper</span>
+                <span>5. Layanan Warta Edukasi &amp; Pengumuman Resmi Dinas</span>
+              </h4>
+              <p class="text-xs text-slate-500 mt-0.5">Kelola surat edaran, berita kegiatan, dan pengumuman resmi yang tampil di halaman depan portal</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="openModal('modalAddNews')" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 whitespace-nowrap active:scale-95">
+                <span class="material-symbols-outlined text-[16px]">add_circle</span>
+                <span>+ Input Warta Edukasi</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 overflow-x-auto shadow-sm">
+            <table class="w-full text-xs text-left">
+              <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[11px] border-b">
+                <tr>
+                  <th class="p-3 text-center">No</th>
+                  <th class="p-3">Judul Berita &amp; Tanggal</th>
+                  <th class="p-3">Kategori</th>
+                  <th class="p-3">Ringkasan Pengumuman</th>
+                  <th class="p-3 text-center">Foto / Dokumen</th>
+                  <th class="p-3 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyAdminNews">
+                <tr><td colspan="6" class="text-center py-4 text-slate-400">Memuat data Warta Edukasi...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- BAGIAN 6: PENGATURAN IDENTITAS INSTANSI & GANTI LOGO -->
+        <div id="admin-section-pengaturan" class="pt-4 border-t border-slate-200 scroll-mt-4">
           <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm max-w-3xl mx-auto">
             <h4 class="font-extrabold text-slate-900 text-sm mb-1 flex items-center gap-2">
               <span class="material-symbols-outlined text-primary text-[20px]">tune</span>
-              <span>5. Pengaturan Identitas Instansi, Hotline &amp; Ganti Logo Dinamis</span>
+              <span>6. Pengaturan Identitas Instansi, Hotline &amp; Ganti Logo Dinamis</span>
             </h4>
             <p class="text-xs text-slate-500 mb-4">Ubah nama aplikasi, tagline dinas, hotline WhatsApp resmi, pejabat penandatangan, atau ganti logo secara langsung.</p>
             
@@ -1733,6 +1726,72 @@
       </div>
     </div>
   </div>
+
+  <!-- ========================================================================
+       MODAL: INPUT DATA WARTA EDUKASI (ADMIN)
+       ======================================================================== -->
+  <div id="modalAddNews" class="modal-overlay hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl relative">
+      <button onclick="closeModal('modalAddNews')" class="absolute top-6 right-6 text-slate-400 hover:text-slate-700">
+        <span class="material-symbols-outlined text-2xl">close</span>
+      </button>
+
+      <div class="flex items-center gap-2.5 mb-1">
+        <div class="p-2 rounded-xl bg-emerald-50 text-emerald-700">
+          <span class="material-symbols-outlined text-[20px]">newspaper</span>
+        </div>
+        <h4 class="font-bold text-slate-900 text-sm">Input Warta Edukasi &amp; Pengumuman Dinas</h4>
+      </div>
+      <p class="text-xs text-slate-500 mb-4">Publikasikan surat edaran, rilis berita kegiatan, atau pengumuman resmi ke portal publik.</p>
+
+      <form id="formAddNews" onsubmit="handleSaveNewsAdmin(event)" class="space-y-3 text-xs font-bold text-slate-700">
+        <div>
+          <label class="block mb-1">Judul Pengumuman / Berita *</label>
+          <input type="text" id="admNewsJudul" placeholder="Contoh: Jadwal Batas Akhir Cut-Off Pelaporan BOSP..." required class="w-full h-9 px-3 border rounded-lg text-xs font-normal">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block mb-1">Kategori Berita *</label>
+            <select id="admNewsKategori" required class="w-full h-9 px-3 border rounded-lg text-xs bg-white font-normal">
+              <option value="Surat Edaran">Surat Edaran</option>
+              <option value="Sarpras & DAK">Sarpras &amp; DAK</option>
+              <option value="Kesiswaan & TIK">Kesiswaan &amp; TIK</option>
+              <option value="Kurikulum & BOSP">Kurikulum &amp; BOSP</option>
+              <option value="Pengumuman">Pengumuman Umum</option>
+            </select>
+          </div>
+          <div>
+            <label class="block mb-1">Tanggal Rilis *</label>
+            <input type="date" id="admNewsTgl" required class="w-full h-9 px-3 border rounded-lg text-xs font-normal bg-white">
+          </div>
+        </div>
+
+        <div>
+          <label class="block mb-1">Ringkasan / Isi Pengumuman *</label>
+          <textarea id="admNewsIsi" rows="3" required placeholder="Tuliskan pokok pengumuman, himbauan, atau informasi penting untuk sekolah dan masyarakat..." class="w-full p-2.5 border rounded-lg text-xs font-normal"></textarea>
+        </div>
+
+        <div>
+          <label class="block mb-1">URL Foto Dokumentasi / Ilustrasi (Opsional)</label>
+          <input type="url" id="admNewsFoto" placeholder="https://images.unsplash.com/... atau link foto Google Drive" class="w-full h-9 px-3 border rounded-lg text-xs font-normal">
+        </div>
+
+        <div>
+          <label class="block mb-1">URL Tautan Dokumen PDF / Unduhan (Opsional)</label>
+          <input type="url" id="admNewsDoc" placeholder="https://drive.google.com/... (link unduh surat edaran PDF)" class="w-full h-9 px-3 border rounded-lg text-xs font-normal">
+        </div>
+
+        <div class="pt-3 flex gap-2">
+          <button type="button" onclick="closeModal('modalAddNews')" class="w-1/3 h-10 border rounded-xl hover:bg-slate-100 font-bold">Batal</button>
+          <button type="submit" id="btnSubmitNewsAdmin" class="w-2/3 h-10 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md">Publikasikan Berita</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: A4 PRINT & PDF PREVIEW (KOP RESMI & QR HMAC)
        ======================================================================== -->
   <div id="modalPdfPreview" class="modal-overlay hidden">
     <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] overflow-y-auto p-6 shadow-2xl relative">

@@ -18,6 +18,7 @@ let pipCache = [];
 let sarprasCache = [];
 let ruangBelajarCache = [];
 let activeRbCategory = 'Semua';
+let newsCache = [];
 let daftarSekolahCache = [];
 let sekolahPerKecamatanCache = {};
 let chartBospObj = null;
@@ -82,6 +83,7 @@ async function initApp() {
   await loadAppConfig();
   await loadDashboardAnalytics();
   await loadRuangBelajar();
+  await loadNews();
   setupEventListeners();
   checkAdminLoginStatus();
 }
@@ -319,6 +321,7 @@ function showAdminDashboard() {
   loadAdminPip();
   loadAdminSarpras();
   loadAdminRuangBelajar();
+  loadAdminNews();
 }
 
 function scrollToAdminSection(id) {
@@ -675,11 +678,14 @@ async function confirmClearAllData() {
     pipCache = [];
     sarprasCache = [];
     ruangBelajarCache = [];
+    newsCache = [];
     loadAdminBosp();
     loadAdminPip();
     loadAdminSarpras();
     loadAdminRuangBelajar();
+    loadAdminNews();
     renderRuangBelajarPublic();
+    renderNewsPublic();
     loadDashboardAnalytics();
   } else {
     alert("Gagal mengosongkan data: " + ((res && res.message) ? res.message : 'Sesi tidak valid'));
@@ -1304,6 +1310,170 @@ async function handleCheckSarprasPublic(e) {
         ${(res && res.message) ? escapeHtml(res.message) : "Usulan Sarpras untuk sekolah tersebut belum ditemukan atau masih dalam proses rekapitulasi."}
       </div>
     `;
+  }
+}
+
+/**
+ * ============================================================================
+ * 12. WARTA EDUKASI & PENGUMUMAN RESMI DINAS
+ * ============================================================================
+ */
+async function loadNews() {
+  const res = await callGasApi('getNews');
+  newsCache = (res && res.success && Array.isArray(res.data)) ? res.data : [];
+  renderNewsPublic();
+  if (currentAdminToken) {
+    loadAdminNews();
+  }
+}
+
+function renderNewsPublic() {
+  const container = document.getElementById('containerNewsList');
+  if (!container) return;
+
+  if (newsCache.length === 0) {
+    container.innerHTML = `
+      <div class="p-8 bg-white rounded-3xl border border-slate-200 shadow-sm text-center">
+        <span class="material-symbols-outlined text-4xl text-emerald-400 mb-2">newspaper</span>
+        <p class="font-bold text-slate-700 text-sm">Belum ada Warta Edukasi yang dipublikasikan.</p>
+        <p class="text-xs text-slate-400 mt-1">Pengumuman dan surat edaran resmi akan tampil di sini setelah diinput melalui Portal Admin.</p>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  newsCache.forEach(r => {
+    let dateStr = r.tgl_terbit || '-';
+    try {
+      if (r.tgl_terbit) {
+        dateStr = new Date(r.tgl_terbit).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+      }
+    } catch(e) {}
+
+    html += `
+      <article class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row gap-5 items-start sm:items-center">
+        <div class="w-full sm:w-28 h-24 rounded-xl overflow-hidden bg-slate-100 shrink-0">
+          <img class="w-full h-full object-cover" src="${escapeAttr(r.foto_url || 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=400&q=80')}" alt="Warta">
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center gap-2 text-[11px] text-slate-400 font-medium mb-1.5">
+            <span class="px-2 py-0.5 rounded ${
+              r.kategori?.includes('Sarpras') ? 'bg-amber-100 text-amber-800' :
+              r.kategori?.includes('TIK') ? 'bg-emerald-100 text-emerald-800' :
+              r.kategori?.includes('Kurikulum') ? 'bg-indigo-100 text-indigo-800' :
+              'bg-blue-100 text-primary'
+            } font-bold">${escapeHtml(r.kategori || 'Surat Edaran')}</span>
+            <span>${escapeHtml(dateStr)}</span>
+          </div>
+          <h4 class="text-sm font-bold text-slate-900 mb-1 hover:text-primary transition-colors cursor-pointer">
+            ${escapeHtml(r.judul || '-')}
+          </h4>
+          <p class="text-xs text-slate-500 line-clamp-2">
+            ${escapeHtml(r.isi_ringkas || '-')}
+          </p>
+          ${r.link_dokumen_url ? `
+            <div class="mt-2">
+              <a href="${escapeAttr(r.link_dokumen_url)}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:underline">
+                <span class="material-symbols-outlined text-[14px]">download</span>
+                <span>Unduh Berkas Surat Edaran</span>
+              </a>
+            </div>
+          ` : ''}
+        </div>
+      </article>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+async function loadAdminNews() {
+  const tbody = document.getElementById('tbodyAdminNews');
+  if (!tbody) return;
+
+  if (newsCache.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="text-center py-8 text-slate-400">
+          <span class="material-symbols-outlined text-4xl block text-slate-300 mb-2">newspaper</span>
+          <p class="font-bold text-slate-600">Belum ada data Warta Edukasi diinput.</p>
+          <p class="text-xs text-slate-400 mt-1">Klik tombol <b>+ Input Warta Edukasi</b> di atas untuk menambahkan berita atau surat edaran.</p>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  let html = '';
+  newsCache.forEach((r, idx) => {
+    let dateStr = r.tgl_terbit || '-';
+    try {
+      if (r.tgl_terbit) {
+        dateStr = new Date(r.tgl_terbit).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+      }
+    } catch(e) {}
+
+    html += `
+      <tr class="border-b hover:bg-slate-50">
+        <td class="p-3 font-semibold text-center">${idx + 1}</td>
+        <td class="p-3">
+          <div class="font-bold text-slate-900">${escapeHtml(r.judul || '-')}</div>
+          <div class="text-[11px] text-slate-400 mt-0.5">Rilis: ${escapeHtml(dateStr)}</div>
+        </td>
+        <td class="p-3 font-semibold text-primary">${escapeHtml(r.kategori || '-')}</td>
+        <td class="p-3"><p class="text-xs text-slate-600 max-w-xs truncate">${escapeHtml(r.isi_ringkas || '-')}</p></td>
+        <td class="p-3 text-center">
+          ${r.link_dokumen_url ? `<a href="${escapeAttr(r.link_dokumen_url)}" target="_blank" class="text-primary hover:underline text-xs font-bold"><span class="material-symbols-outlined text-[18px]">attachment</span></a>` : '-'}
+        </td>
+        <td class="p-3 text-center">
+          <button onclick="deleteNewsItem('${r.id_pengumuman}')" title="Hapus Berita" class="text-rose-600 hover:text-rose-800 font-bold text-xs p-1">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+  tbody.innerHTML = html;
+}
+
+async function handleSaveNewsAdmin(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btnSubmitNewsAdmin');
+  btn.disabled = true;
+  btn.innerHTML = `<span class="inline-block animate-spin mr-2">⏳</span> Menyimpan...`;
+
+  const payload = {
+    judul: document.getElementById('admNewsJudul').value.trim(),
+    kategori: document.getElementById('admNewsKategori').value,
+    tgl_terbit: document.getElementById('admNewsTgl').value,
+    isi_ringkas: document.getElementById('admNewsIsi').value.trim(),
+    foto_url: document.getElementById('admNewsFoto').value.trim(),
+    link_dokumen_url: document.getElementById('admNewsDoc').value.trim(),
+    status_tampil: 'PUBLISH'
+  };
+
+  const res = await callGasApi('saveNews', payload, true);
+  btn.disabled = false;
+  btn.innerHTML = `Publikasikan Berita`;
+
+  if (res && res.success) {
+    alert("✅ Warta Edukasi berhasil diterbitkan!");
+    document.getElementById('formAddNews').reset();
+    closeModal('modalAddNews');
+    loadNews();
+  } else {
+    alert("Gagal menerbitkan warta: " + ((res && res.message) ? res.message : "Terjadi kesalahan"));
+  }
+}
+
+async function deleteNewsItem(id) {
+  if (!confirm("Apakah Anda yakin ingin menghapus warta edukasi ini?")) return;
+  const res = await callGasApi('deleteNews', { id }, true);
+  if (res && res.success) {
+    alert("Berita berhasil dihapus.");
+    loadNews();
+  } else {
+    alert("Gagal menghapus: " + res.message);
   }
 }
 
