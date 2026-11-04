@@ -92,12 +92,8 @@
       <div class="flex items-center gap-3">
         <span class="inline-flex items-center gap-1 text-tertiary-fixed text-[11px] font-semibold">
           <span class="w-2 h-2 rounded-full bg-tertiary-fixed animate-ping"></span>
-          Server Sinkronisasi Dapodik: Realtime Aktif
+          Server Sinkronisasi Dapodik: Realtime Terhubung
         </span>
-        <button onclick="openAdminModal()" class="inline-flex items-center gap-1.5 bg-tertiary-fixed hover:bg-tertiary-fixed-dim text-on-tertiary-fixed font-bold px-3 py-1 rounded-full text-xs transition-all duration-150 active:scale-95 shadow-sm">
-          <span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">vpn_key</span>
-          <span class="btn-admin-label">Portal Admin Terpadu</span>
-        </button>
       </div>
     </div>
   </div>
@@ -939,138 +935,166 @@
         </div>
       </div>
 
-      <!-- Navigation Tabs -->
-      <div class="bg-slate-100 border-b border-slate-200 px-6 py-2.5 flex items-center gap-2 overflow-x-auto shrink-0 text-xs font-bold text-slate-700">
-        <button id="btn-adm-tab-dash" onclick="switchAdminSubTab('adm-tab-dash')" class="adm-nav-btn px-4 py-2 rounded-xl bg-primary text-white transition-all whitespace-nowrap">
-          Dashboard Grafik
-        </button>
-        <button id="btn-adm-tab-bosp" onclick="switchAdminSubTab('adm-tab-bosp')" class="adm-nav-btn px-4 py-2 rounded-xl hover:bg-slate-200 transition-all whitespace-nowrap">
-          Kurikulum: Dana BOSP
-        </button>
-        <button id="btn-adm-tab-pip" onclick="switchAdminSubTab('adm-tab-pip')" class="adm-nav-btn px-4 py-2 rounded-xl hover:bg-slate-200 transition-all whitespace-nowrap">
-          Kurikulum: Beasiswa PIP
-        </button>
-        <button id="btn-adm-tab-sarpras" onclick="switchAdminSubTab('adm-tab-sarpras')" class="adm-nav-btn px-4 py-2 rounded-xl hover:bg-slate-200 transition-all whitespace-nowrap">
-          Sarpras: Usulan &amp; Fisik
-        </button>
-        <button id="btn-adm-tab-settings" onclick="switchAdminSubTab('adm-tab-settings')" class="adm-nav-btn px-4 py-2 rounded-xl hover:bg-slate-200 transition-all whitespace-nowrap">
-          Logo &amp; Pengaturan
-        </button>
+      <!-- Quick Action Toolbar (Satu Tampilan Tunggal Terpadu) -->
+      <div class="bg-slate-100 border-b border-slate-200 px-6 py-3 flex items-center justify-between gap-3 overflow-x-auto shrink-0">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-2 hidden sm:inline">Aksi Cepat Admin:</span>
+          <button onclick="openModal('modalAddBosp')" class="px-3.5 py-2 bg-primary hover:bg-primary-container text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 whitespace-nowrap">
+            <span class="material-symbols-outlined text-[16px]">add_circle</span>
+            <span>+ Input BOSP (Kurikulum)</span>
+          </button>
+          <button onclick="openModal('modalAddPip')" class="px-3.5 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 whitespace-nowrap">
+            <span class="material-symbols-outlined text-[16px]">school</span>
+            <span>+ Input PIP (Kurikulum)</span>
+          </button>
+          <button onclick="openModal('modalAddSarpras')" class="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 whitespace-nowrap">
+            <span class="material-symbols-outlined text-[16px]">domain_add</span>
+            <span>+ Input Sarpras (Sarpras)</span>
+          </button>
+        </div>
+        <div class="flex items-center gap-2">
+          <a href="#admin-section-pengaturan" class="px-3 py-2 bg-white hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold shadow-sm flex items-center gap-1 whitespace-nowrap">
+            <span class="material-symbols-outlined text-[16px]">settings</span>
+            <span>Pengaturan &amp; Logo</span>
+          </a>
+        </div>
       </div>
 
-      <!-- Tab Contents Area -->
-      <div class="flex-1 overflow-y-auto p-6 bg-slate-50">
+      <!-- Tab Contents Area: SATU TAMPILAN TUNGGAL ALL-IN-ONE -->
+      <div class="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-8">
         
-        <!-- Tab 1: Dashboard Analytics -->
-        <div id="adm-tab-dash" class="adm-subtab-content space-y-6">
+        <!-- BAGIAN 1: GRAFIK & ANALITIK TERPADU -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary text-[20px]">monitoring</span>
+              <span>1. Ringkasan Realisasi &amp; Analitik Terpadu</span>
+            </h4>
+          </div>
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
               <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Realisasi BOSP per Kecamatan (Milyar Rp)</h5>
-              <div class="h-64">
+              <div class="h-60">
                 <canvas id="chartAdminBosp"></canvas>
               </div>
             </div>
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-              <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Peta Kondisi Fasilitas Sarpras</h5>
-              <div class="h-64">
+              <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">Peta Kondisi Fasilitas Sarpras Sekolah</h5>
+              <div class="h-60">
                 <canvas id="chartAdminSarpras"></canvas>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Tab 2: BOSP CRUD & Export (Kurikulum) -->
-        <div id="adm-tab-bosp" class="adm-subtab-content hidden space-y-4">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200">
+        <!-- BAGIAN 2: SEKSI KURIKULUM (DANA BOSP & BEASISWA PIP) -->
+        <div class="space-y-6 pt-4 border-t border-slate-200">
+          <div class="flex items-center justify-between">
             <div>
-              <h4 class="font-bold text-slate-900 text-sm">Manajemen Dana BOSP (Seksi Kurikulum)</h4>
-              <p class="text-xs text-slate-500">Rekapitulasi alokasi, status salur, dan verifikasi SPJ</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <button onclick="exportBospToExcel()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm">
-                <i class="fa-solid fa-file-excel me-1"></i> Unduh Excel (.xlsx)
-              </button>
-              <button onclick="previewBospPdfModal()" class="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm">
-                <i class="fa-solid fa-file-pdf me-1"></i> Cetak Lembar Kop
-              </button>
-              <button onclick="openModal('modalAddBosp')" class="px-3 py-2 bg-primary hover:bg-primary-container text-white rounded-xl text-xs font-bold shadow-sm">
-                + Input BOSP Baru
-              </button>
+              <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-[20px]">menu_book</span>
+                <span>2. Layanan Seksi Kurikulum: Dana BOSP &amp; Beasiswa PIP</span>
+              </h4>
+              <p class="text-xs text-slate-500 mt-0.5">Input manual, pantau penyaluran dana BOSP dan pencairan beasiswa siswa</p>
             </div>
           </div>
 
-          <div class="bg-white rounded-2xl border border-slate-200 overflow-x-auto shadow-sm">
-            <table class="w-full text-xs text-left">
-              <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[11px] border-b">
-                <tr>
-                  <th class="p-3 text-center">No</th>
-                  <th class="p-3">NPSN</th>
-                  <th class="p-3">Nama Sekolah</th>
-                  <th class="p-3">Jenjang</th>
-                  <th class="p-3">Kecamatan</th>
-                  <th class="p-3">Alokasi Dana</th>
-                  <th class="p-3">Status Salur</th>
-                  <th class="p-3 text-center">Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyAdminBosp">
-                <tr><td colspan="8" class="text-center py-4 text-slate-400">Memuat data...</td></tr>
-              </tbody>
-            </table>
+          <!-- Sub 2A: Tabel Data BOSP -->
+          <div class="space-y-3">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200">
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-primary font-extrabold text-xs">BOSP</span>
+                <span class="font-bold text-slate-800 text-xs">Penyaluran &amp; SPJ Dana BOSP SD &amp; SMP</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="exportBospToExcel()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm">
+                  <i class="fa-solid fa-file-excel me-1"></i> Excel
+                </button>
+                <button onclick="previewBospPdfModal()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm">
+                  <i class="fa-solid fa-file-pdf me-1"></i> Cetak Kop
+                </button>
+                <button onclick="openModal('modalAddBosp')" class="px-3 py-1.5 bg-primary hover:bg-primary-container text-white rounded-xl text-xs font-bold shadow-sm">
+                  + Input BOSP Baru
+                </button>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 overflow-x-auto shadow-sm">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[11px] border-b">
+                  <tr>
+                    <th class="p-3 text-center">No</th>
+                    <th class="p-3">NPSN</th>
+                    <th class="p-3">Nama Sekolah</th>
+                    <th class="p-3">Jenjang</th>
+                    <th class="p-3">Kecamatan</th>
+                    <th class="p-3">Alokasi Dana</th>
+                    <th class="p-3">Status Salur</th>
+                    <th class="p-3 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyAdminBosp">
+                  <tr><td colspan="8" class="text-center py-4 text-slate-400">Memuat data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Sub 2B: Tabel Data PIP -->
+          <div class="space-y-3">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200">
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-1 rounded-lg bg-sky-50 text-sky-800 font-extrabold text-xs">PIP</span>
+                <span class="font-bold text-slate-800 text-xs">Data Siswa Penerima Beasiswa PIP</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="exportPipToExcel()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm">
+                  <i class="fa-solid fa-file-excel me-1"></i> Excel
+                </button>
+                <button onclick="openModal('modalAddPip')" class="px-3 py-1.5 bg-sky-700 hover:bg-sky-800 text-white rounded-xl text-xs font-bold shadow-sm">
+                  + Input Siswa PIP Baru
+                </button>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 overflow-x-auto shadow-sm">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[11px] border-b">
+                  <tr>
+                    <th class="p-3 text-center">No</th>
+                    <th class="p-3">NISN</th>
+                    <th class="p-3">Nama Siswa</th>
+                    <th class="p-3">Sekolah &amp; Kelas</th>
+                    <th class="p-3">Kecamatan</th>
+                    <th class="p-3">Nominal Bantuan</th>
+                    <th class="p-3">Status Cair</th>
+                    <th class="p-3">Bank Penyalur</th>
+                    <th class="p-3 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyAdminPip">
+                  <tr><td colspan="9" class="text-center py-4 text-slate-400">Memuat data...</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
-        <!-- Tab 3: Beasiswa PIP CRUD & Export (Kurikulum) -->
-        <div id="adm-tab-pip" class="adm-subtab-content hidden space-y-4">
+        <!-- BAGIAN 3: SEKSI SARPRAS (USULAN & KONDISI FISIK SEKOLAH) -->
+        <div class="space-y-4 pt-4 border-t border-slate-200">
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200">
             <div>
-              <h4 class="font-bold text-slate-900 text-sm">Manajemen Beasiswa PIP Siswa (Seksi Kurikulum)</h4>
-              <p class="text-xs text-slate-500">Pendataan penerima manfaat Program Indonesia Pintar SD &amp; SMP</p>
+              <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-600 text-[20px]">domain</span>
+                <span>3. Layanan Seksi Sarpras: Inventaris &amp; Usulan Kerusakan Sekolah</span>
+              </h4>
+              <p class="text-xs text-slate-500 mt-0.5">Input manual kondisi ruang kelas, evaluasi kerusakan, dan rekomendasi DAK/APBD</p>
             </div>
             <div class="flex items-center gap-2">
-              <button onclick="exportPipToExcel()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm">
-                <i class="fa-solid fa-file-excel me-1"></i> Unduh Excel (.xlsx)
+              <button onclick="exportSarprasToExcel()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm">
+                <i class="fa-solid fa-file-excel me-1"></i> Excel
               </button>
-              <button onclick="openModal('modalAddPip')" class="px-3 py-2 bg-primary hover:bg-primary-container text-white rounded-xl text-xs font-bold shadow-sm">
-                + Input Siswa PIP Baru
-              </button>
-            </div>
-          </div>
-
-          <div class="bg-white rounded-2xl border border-slate-200 overflow-x-auto shadow-sm">
-            <table class="w-full text-xs text-left">
-              <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[11px] border-b">
-                <tr>
-                  <th class="p-3 text-center">No</th>
-                  <th class="p-3">NISN</th>
-                  <th class="p-3">Nama Siswa</th>
-                  <th class="p-3">Sekolah &amp; Kelas</th>
-                  <th class="p-3">Kecamatan</th>
-                  <th class="p-3">Nominal Bantuan</th>
-                  <th class="p-3">Status Cair</th>
-                  <th class="p-3">Bank Penyalur</th>
-                  <th class="p-3 text-center">Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyAdminPip">
-                <tr><td colspan="9" class="text-center py-4 text-slate-400">Memuat data...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Tab 4: Sarpras Verification & Manual Input -->
-        <div id="adm-tab-sarpras" class="adm-subtab-content hidden space-y-4">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200">
-            <div>
-              <h4 class="font-bold text-slate-900 text-sm">Verifikasi &amp; Input Sarpras Sekolah (Seksi Sarpras)</h4>
-              <p class="text-xs text-slate-500">Evaluasi kerusakan, input manual kondisi, dan penetapan rekomendasi DAK/APBD</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <button onclick="exportSarprasToExcel()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm">
-                <i class="fa-solid fa-file-excel me-1"></i> Unduh Excel (.xlsx)
-              </button>
-              <button onclick="openModal('modalAddSarpras')" class="px-3 py-2 bg-primary hover:bg-primary-container text-white rounded-xl text-xs font-bold shadow-sm">
+              <button onclick="openModal('modalAddSarpras')" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm">
                 + Input Sarpras Manual
               </button>
             </div>
@@ -1097,25 +1121,32 @@
           </div>
         </div>
 
-        <!-- Tab 5: Settings & Live Logo Customizer -->
-        <div id="adm-tab-settings" class="adm-subtab-content hidden">
-          <div class="bg-white p-6 rounded-2xl border border-slate-200 max-w-2xl mx-auto shadow-sm">
-            <h4 class="font-bold text-slate-900 text-sm mb-4">Pengaturan Identitas &amp; Ganti Logo Dinamis</h4>
+        <!-- BAGIAN 4: PENGATURAN IDENTITAS & GANTI LOGO -->
+        <div id="admin-section-pengaturan" class="pt-4 border-t border-slate-200">
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm max-w-3xl mx-auto">
+            <h4 class="font-extrabold text-slate-900 text-sm mb-1 flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary text-[20px]">tune</span>
+              <span>4. Pengaturan Identitas Instansi &amp; Ganti Logo Dinamis</span>
+            </h4>
+            <p class="text-xs text-slate-500 mb-4">Ubah nama aplikasi, tagline dinas, pejabat penandatangan, atau ganti logo secara langsung.</p>
+            
             <form onsubmit="handleSaveSettings(event)" class="space-y-4 text-xs font-bold text-slate-700">
-              <div>
-                <label class="block mb-1">Nama Aplikasi</label>
-                <input type="text" id="inputCfgAppName" class="w-full h-10 px-3 border rounded-xl text-xs">
-              </div>
-              <div>
-                <label class="block mb-1">Tagline Portal</label>
-                <input type="text" id="inputCfgTagline" class="w-full h-10 px-3 border rounded-xl text-xs">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block mb-1">Nama Aplikasi</label>
+                  <input type="text" id="inputCfgAppName" class="w-full h-10 px-3 border rounded-xl text-xs">
+                </div>
+                <div>
+                  <label class="block mb-1">Tagline Portal</label>
+                  <input type="text" id="inputCfgTagline" class="w-full h-10 px-3 border rounded-xl text-xs">
+                </div>
               </div>
               <div>
                 <label class="block mb-1">URL Logo Utama (Tut Wuri Handayani / Aplikasi)</label>
                 <div class="flex gap-2">
                   <input type="text" id="inputCfgLogoUtama" class="flex-1 h-10 px-3 border rounded-xl text-xs">
                   <button type="button" onclick="triggerLogoUpload('inputCfgLogoUtama')" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 font-bold border">
-                    Upload File
+                    Upload
                   </button>
                 </div>
               </div>
@@ -1124,11 +1155,11 @@
                 <div class="flex gap-2">
                   <input type="text" id="inputCfgLogoPemkab" class="flex-1 h-10 px-3 border rounded-xl text-xs">
                   <button type="button" onclick="triggerLogoUpload('inputCfgLogoPemkab')" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 font-bold border">
-                    Upload File
+                    Upload
                   </button>
                 </div>
               </div>
-              <div class="grid grid-cols-2 gap-4 pt-2">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                 <div>
                   <label class="block mb-1">Nama Pejabat (Kabid Dikdas)</label>
                   <input type="text" id="inputCfgNamaKabid" class="w-full h-10 px-3 border rounded-xl text-xs">
@@ -1138,7 +1169,7 @@
                   <input type="text" id="inputCfgNipKabid" class="w-full h-10 px-3 border rounded-xl text-xs">
                 </div>
               </div>
-              <button type="submit" id="btnSaveSettings" class="w-full h-11 bg-primary text-white font-bold rounded-xl mt-4 hover:bg-primary-container">
+              <button type="submit" id="btnSaveSettings" class="w-full h-11 bg-primary text-white font-bold rounded-xl mt-4 hover:bg-primary-container shadow-md">
                 Simpan Semua Pengaturan
               </button>
             </form>
@@ -1150,7 +1181,7 @@
                 <span>Zona Khusus Admin: Pembersihan &amp; Pengosongan Data</span>
               </h5>
               <p class="text-xs text-slate-500 mb-3 leading-relaxed">
-                Gunakan tombol di bawah jika Anda ingin mengosongkan seluruh data transaksi (Dana BOSP, Siswa PIP, dan Usulan Sarpras) sehingga database kembali bersih 100% dan hanya terisi jika Admin/Kepala Sekolah menginput data riil.
+                Gunakan tombol di bawah jika Anda ingin mengosongkan seluruh data transaksi (Dana BOSP, Siswa PIP, dan Usulan Sarpras) sehingga database kembali bersih 100% dan hanya terisi jika Admin menginput data riil.
               </p>
               <button type="button" onclick="confirmClearAllData()" id="btnResetDatabase" class="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold rounded-xl text-xs transition-all flex items-center gap-2">
                 <span class="material-symbols-outlined text-[18px]">delete_sweep</span>

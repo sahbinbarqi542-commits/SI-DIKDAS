@@ -303,7 +303,7 @@ function logoutAdmin() {
 
 function showAdminDashboard() {
   document.getElementById('modalAdminPanel').classList.remove('hidden');
-  switchAdminSubTab('adm-tab-dash');
+  loadDashboardAnalytics();
   loadAdminBosp();
   loadAdminPip();
   loadAdminSarpras();
