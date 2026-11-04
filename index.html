@@ -117,7 +117,8 @@
       <nav class="hidden lg:flex items-center gap-6 text-sm font-semibold text-slate-600">
         <a class="text-primary font-bold border-b-2 border-primary pb-1" href="#beranda">Beranda</a>
         <a class="hover:text-primary transition-colors pb-1" href="#layanan-kesiswaan">Layanan Kurikulum</a>
-        <a class="hover:text-primary transition-colors pb-1" href="#cek-pip">Cek Beasiswa PIP</a>
+        <a class="hover:text-primary transition-colors pb-1" href="#cek-pip">Cek PIP</a>
+        <a class="hover:text-primary transition-colors pb-1" href="#cek-sarpras">Verifikasi Sarpras</a>
         <a class="hover:text-primary transition-colors pb-1" href="#sarpras">Sarpras SD/SMP</a>
         <a class="hover:text-primary transition-colors pb-1" href="#pengumuman">Warta Edukasi</a>
       </nav>
@@ -126,6 +127,9 @@
       <div class="flex items-center gap-3">
         <button onclick="document.getElementById('cek-pip').scrollIntoView({behavior: 'smooth'})" class="hidden md:inline-flex items-center justify-center bg-blue-50 hover:bg-blue-100 text-primary font-bold px-3.5 py-2 rounded-xl text-xs border border-primary/20 transition-all duration-200 active:scale-95 shadow-sm">
           Verifikasi PIP
+        </button>
+        <button onclick="document.getElementById('cek-sarpras').scrollIntoView({behavior: 'smooth'})" class="hidden md:inline-flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold px-3.5 py-2 rounded-xl text-xs border border-amber-200 transition-all duration-200 active:scale-95 shadow-sm">
+          Verifikasi Sarpras
         </button>
         <button onclick="openAdminModal()" class="inline-flex items-center justify-center bg-primary hover:bg-primary-container text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md transition-all duration-200 active:scale-95">
           <span class="btn-admin-label">Portal Admin</span>
@@ -171,6 +175,10 @@
             <span>Akses Layanan Kurikulum</span>
             <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
           </a>
+          <button onclick="document.getElementById('cek-sarpras').scrollIntoView({behavior: 'smooth'})" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold px-7 py-3.5 rounded-xl text-sm transition-all duration-200 active:scale-95 shadow-lg">
+            <span>Cek Verifikasi Sarpras</span>
+            <span class="material-symbols-outlined text-[20px]">domain_verification</span>
+          </button>
           <button onclick="openModal('modalSarprasPublic')" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white/15 hover:bg-white/25 text-white font-bold px-7 py-3.5 rounded-xl text-sm backdrop-blur-md border border-white/30 transition-all duration-200 active:scale-95 shadow-sm">
             <span>Pengajuan Sarpras Sekolah</span>
             <span class="material-symbols-outlined text-[20px]">domain_add</span>
@@ -658,6 +666,61 @@
     <!-- ======================================================================
          GEOGRAPHIC ACCREDITATION & DISTRICT SUMMARY
          ====================================================================== -->
+    <!-- ======================================================================
+         SECTION: VERIFIKASI & PELACAKAN USULAN SARPRAS SEKOLAH (PUBLIK)
+         ====================================================================== -->
+    <section class="max-w-7xl mx-auto px-6 py-12" id="cek-sarpras">
+      <div class="bg-gradient-to-r from-amber-700 via-amber-800 to-amber-950 text-white rounded-3xl p-8 md:p-12 shadow-2xl relative overflow-hidden">
+        <div class="absolute -right-16 -top-16 w-60 h-60 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-3xl">
+          <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-amber-200 text-xs font-bold mb-4 border border-white/20">
+            <span class="material-symbols-outlined text-[16px]">domain_verification</span>
+            <span>Layanan Verifikasi Seksi Sarana &amp; Prasarana (Sarpras)</span>
+          </span>
+          <h3 class="text-2xl sm:text-3xl font-extrabold text-white mb-3">
+            Pusat Pengecekan &amp; Verifikasi Usulan Sarpras Sekolah
+          </h3>
+          <p class="text-xs sm:text-sm text-amber-100 mb-8 leading-relaxed">
+            Periksa status rekomendasi teknis revitalisasi ruang kelas, lab komputer TIK, jamban sanitasi, dan mebeler satuan pendidikan Anda secara real-time langsung dari database Dinas Pendidikan dan Kebudayaan Kab. Konawe Utara.
+          </p>
+
+          <form onsubmit="handleSarprasCheck(event)" class="flex flex-col sm:flex-row gap-3">
+            <div class="relative flex-1">
+              <input type="text" id="sarprasQueryInput" placeholder="Masukkan Nomor NPSN Sekolah (Contoh: 40402101) atau ID Usulan..." required class="w-full h-12 px-4 pl-11 rounded-xl bg-white/10 border border-white/25 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-amber-300 text-xs sm:text-sm font-semibold">
+              <span class="material-symbols-outlined absolute left-3.5 top-3.5 text-white/70 text-[20px]">search</span>
+            </div>
+            <button type="submit" id="btnSubmitSarprasCheck" class="h-12 px-7 bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold rounded-xl text-xs sm:text-sm transition-all duration-150 flex items-center justify-center gap-2 shadow-lg active:scale-95 whitespace-nowrap">
+              <span class="material-symbols-outlined text-[20px]">fact_check</span>
+              <span>Cek Status Verifikasi</span>
+            </button>
+          </form>
+
+          <!-- Result Container -->
+          <div id="sarprasCheckResultBox" class="mt-8 hidden">
+            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 text-white">
+              <div class="flex items-center justify-between border-b border-white/15 pb-3 mb-4">
+                <span class="text-xs font-extrabold text-amber-300 tracking-wider">HASIL VERIFIKASI RESMI SARPRAS</span>
+                <span id="sarprasResCount" class="text-xs bg-white/20 px-2.5 py-0.5 rounded-full font-bold">1 Usulan Terdata</span>
+              </div>
+              <div id="sarprasResContentList" class="space-y-4"></div>
+            </div>
+          </div>
+
+          <div class="mt-6 flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-white/15 text-xs text-amber-200">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[16px]">verified</span>
+              <span>Terintegrasi langsung dengan Tim Teknis Asesmen Lapangan Disdikbud Konut</span>
+            </div>
+            <button onclick="openModal('modalSarprasPublic')" class="text-white font-bold underline hover:text-amber-200 flex items-center gap-1">
+              <span>Belum lapor kerusakan? Buat Usulan Baru</span>
+              <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="bg-slate-100 py-16 px-6 border-t border-slate-200">
       <div class="max-w-7xl mx-auto">
         <div class="bg-white p-8 md:p-10 rounded-3xl border border-slate-200 shadow-md">
@@ -1097,6 +1160,12 @@
               <button onclick="openModal('modalAddSarpras')" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm">
                 + Input Sarpras Manual
               </button>
+              <button onclick="filterSarprasByStatus('all')" id="btnFilterSarprasAll" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold border border-slate-300 shadow-sm">Semua Usulan</button>
+              <button onclick="filterSarprasByStatus('Menunggu Verifikasi')" id="btnFilterSarprasPending" class="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-xl text-xs font-bold border border-amber-300 shadow-sm flex items-center gap-1">
+                <span class="material-symbols-outlined text-[16px]">fact_check</span>
+                <span>Menu Verifikasi Sarpras</span>
+                <span id="badgePendingSarprasCount" class="bg-amber-600 text-white text-[10px] px-1.5 py-0.5 rounded-full hidden">0</span>
+              </button>
             </div>
           </div>
 
@@ -1111,7 +1180,7 @@
                   <th class="p-3">Estimasi RAB</th>
                   <th class="p-3">Status Usulan</th>
                   <th class="p-3 text-center">Foto Bukti</th>
-                  <th class="p-3 text-center">Aksi</th>
+                  <th class="p-3 text-center">Aksi Verifikasi</th>
                 </tr>
               </thead>
               <tbody id="tbodyAdminSarpras">
@@ -1476,6 +1545,98 @@
         <div class="pt-3 flex gap-2">
           <button type="button" onclick="closeModal('modalAddSarpras')" class="w-1/3 h-10 border rounded-xl hover:bg-slate-100 font-bold">Batal</button>
           <button type="submit" id="btnSubmitSarprasAdmin" class="w-2/3 h-10 bg-primary hover:bg-primary-container text-white font-bold rounded-xl shadow-md">Simpan Data Sarpras</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: VERIFIKASI SARPRAS (ADMIN VERIFIKASI & REKOMENDASI DINAS)
+       ======================================================================== -->
+  <div id="modalVerifikasiSarpras" class="modal-overlay hidden">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-8 shadow-2xl relative">
+      <button onclick="closeModal('modalVerifikasiSarpras')" class="absolute top-5 right-5 text-slate-400 hover:text-slate-700">
+        <span class="material-symbols-outlined text-2xl">close</span>
+      </button>
+
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+          <span class="material-symbols-outlined text-2xl">domain_verification</span>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-slate-900">Form Verifikasi Kelayakan Sarpras</h3>
+          <p class="text-xs text-slate-500">Evaluasi usulan fisik sekolah, tentukan rekomendasi, dan terbitkan Berita Acara</p>
+        </div>
+      </div>
+
+      <!-- Info Ringkas Usulan -->
+      <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 mb-6 text-xs space-y-2">
+        <div class="flex justify-between items-center border-b pb-2">
+          <span class="text-slate-500 font-medium">Nomor Usulan / NPSN:</span>
+          <span id="verifIdNpsn" class="font-bold text-slate-800">-</span>
+        </div>
+        <div class="flex justify-between items-center border-b pb-2">
+          <span class="text-slate-500 font-medium">Satuan Pendidikan:</span>
+          <span id="verifNamaSekolah" class="font-bold text-slate-800 text-right">-</span>
+        </div>
+        <div class="flex justify-between items-center border-b pb-2">
+          <span class="text-slate-500 font-medium">Kecamatan:</span>
+          <span id="verifKecamatan" class="font-bold text-slate-800">-</span>
+        </div>
+        <div class="flex justify-between items-center border-b pb-2">
+          <span class="text-slate-500 font-medium">Objek Fasilitas &amp; Kondisi:</span>
+          <span id="verifFasilitasKondisi" class="font-bold text-amber-700">-</span>
+        </div>
+        <div class="flex justify-between items-center border-b pb-2">
+          <span class="text-slate-500 font-medium">Kebutuhan Penanganan:</span>
+          <span id="verifPenanganan" class="font-medium text-slate-700 text-right max-w-xs">-</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500 font-medium">Estimasi Usulan Biaya (RAB):</span>
+          <span id="verifRab" class="font-bold text-slate-900 text-sm">-</span>
+        </div>
+        <div id="verifFotoContainer" class="pt-2 text-center hidden">
+          <a id="verifFotoLink" href="#" target="_blank" class="inline-flex items-center gap-1.5 text-primary font-bold hover:underline">
+            <span class="material-symbols-outlined text-[16px]">image</span>
+            <span>Lihat Lampiran Foto Kerusakan Lapangan</span>
+          </a>
+        </div>
+      </div>
+
+      <form onsubmit="handleSaveVerifikasiDecision(event)" class="space-y-4 text-xs">
+        <input type="hidden" id="verifSarprasId">
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Status Keputusan Verifikasi Dinas *</label>
+          <select id="verifStatusDecision" required class="w-full h-11 px-3 border border-slate-300 rounded-xl bg-white font-semibold focus:ring-2 focus:ring-amber-500 focus:outline-none">
+            <option value="Menunggu Verifikasi">Menunggu Verifikasi (Pending / Belum Disurvei)</option>
+            <option value="Rekomendasi DAK Fisik 2027">⭐ Rekomendasi DAK Fisik 2027 (Prioritas Kemendikbudristek)</option>
+            <option value="Prioritas APBD Perubahan">📌 Prioritas APBD Perubahan Kab. Konawe Utara</option>
+            <option value="Perbaikan Swakelola Sekolah (BOSP)">🏢 Dialihkan ke Pemeliharaan Rutin BOSP Sekolah</option>
+            <option value="Ditolak / Belum Memenuhi Kriteria">❌ Ditolak / Belum Memenuhi Kriteria Kerusakan</option>
+            <option value="Selesai Direhab">✅ Selesai Direhab / Tuntas Ditangani</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Catatan Hasil Verifikasi Lapangan &amp; Rekomendasi Teknis</label>
+          <textarea id="verifCatatan" rows="3" placeholder="Contoh: Telah diverifikasi oleh Tim Teknis Disdikbud Konut. Struktur atap lapuk dan membahayakan KBM. Memenuhi syarat DAK 2027." class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"></textarea>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Tim Verifikator</label>
+          <input type="text" id="verifPetugas" value="Seksi Sarana &amp; Prasarana Disdikbud Konawe Utara" class="w-full h-10 px-3 border border-slate-300 rounded-xl bg-slate-50 font-medium">
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 pt-3">
+          <button type="button" onclick="previewCurrentVerifikasiSlip()" class="flex-1 h-11 border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors">
+            <span class="material-symbols-outlined text-[18px]">print</span>
+            <span>Cetak Berita Acara</span>
+          </button>
+          <button type="submit" id="btnSaveVerifDecision" class="flex-1 h-11 bg-primary hover:bg-primary-container text-white font-bold rounded-xl shadow-md flex items-center justify-center gap-1.5 transition-colors">
+            <span class="material-symbols-outlined text-[18px]">check_circle</span>
+            <span>Simpan Hasil Verifikasi</span>
+          </button>
         </div>
       </form>
     </div>

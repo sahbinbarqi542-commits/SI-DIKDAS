@@ -234,6 +234,115 @@ async function finishSarprasSubmit(payload, btn) {
   }
 }
 
+let publicSarprasSearchResults = [];
+
+/**
+ * 3B. CEK STATUS & VERIFIKASI USULAN SARPRAS (PUBLIK & SEKOLAH)
+ */
+async function handleSarprasCheck(e) {
+  e.preventDefault();
+  const query = document.getElementById('sarprasQueryInput').value.trim();
+  const btn = document.getElementById('btnSubmitSarprasCheck');
+  const resBox = document.getElementById('sarprasCheckResultBox');
+  const countSpan = document.getElementById('sarprasResCount');
+  const listContainer = document.getElementById('sarprasResContentList');
+
+  if (!query) return;
+
+  btn.disabled = true;
+  btn.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> Memeriksa...`;
+
+  const res = await callGasApi('checkSarpras', { query });
+  btn.disabled = false;
+  btn.innerHTML = `<span class="material-symbols-outlined text-[20px]">fact_check</span><span>Cek Status Verifikasi</span>`;
+
+  resBox.classList.remove('hidden');
+
+  if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+    publicSarprasSearchResults = res.data;
+    countSpan.innerText = `${res.data.length} Usulan Terdata`;
+    countSpan.className = "text-xs bg-emerald-500/30 text-emerald-200 border border-emerald-400/30 px-3 py-0.5 rounded-full font-bold";
+
+    let html = '';
+    res.data.forEach(item => {
+      let statusBadge = '';
+      if (item.status_usulan === 'Rekomendasi DAK Fisik 2027') {
+        statusBadge = `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-500/30 text-emerald-200 border border-emerald-400/40 text-xs font-bold"><span class="material-symbols-outlined text-[15px]">verified</span> Rekomendasi DAK Fisik 2027</span>`;
+      } else if (item.status_usulan === 'Prioritas APBD Perubahan') {
+        statusBadge = `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-sky-500/30 text-sky-200 border border-sky-400/40 text-xs font-bold"><span class="material-symbols-outlined text-[15px]">bookmark</span> Prioritas APBD Perubahan</span>`;
+      } else if (item.status_usulan === 'Selesai Direhab') {
+        statusBadge = `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-500/30 text-blue-200 border border-blue-400/40 text-xs font-bold"><span class="material-symbols-outlined text-[15px]">check_circle</span> Selesai Direhab</span>`;
+      } else if (item.status_usulan === 'Ditolak / Belum Memenuhi Kriteria') {
+        statusBadge = `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-rose-500/30 text-rose-200 border border-rose-400/40 text-xs font-bold"><span class="material-symbols-outlined text-[15px]">cancel</span> Belum Memenuhi Kriteria</span>`;
+      } else {
+        statusBadge = `<span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/30 text-amber-200 border border-amber-400/40 text-xs font-bold"><span class="material-symbols-outlined text-[15px]">hourglass_top</span> Menunggu Verifikasi Lapangan</span>`;
+      }
+
+      html += `
+        <div class="bg-white/10 rounded-2xl p-5 border border-white/20 text-white space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/15 pb-3">
+            <div>
+              <div class="text-base font-extrabold text-white">${item.nama_sekolah || '-'}</div>
+              <div class="text-xs text-amber-200">NPSN: ${item.npsn || '-'} • Kec. ${item.kecamatan || '-'} • No. Usulan: <b>${item.id_sarpras || '-'}</b></div>
+            </div>
+            <div>${statusBadge}</div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div class="bg-black/20 p-3 rounded-xl border border-white/10">
+              <span class="text-amber-200/80 block text-[11px] mb-0.5">Fasilitas & Kondisi:</span>
+              <span class="font-bold text-white text-sm">${item.jenis_fasilitas || '-'} (${item.jumlah_unit || 1} Unit)</span>
+              <div class="text-xs font-semibold ${item.kondisi === 'Rusak Berat' ? 'text-rose-300' : 'text-amber-300'} mt-0.5">${item.kondisi || 'Rusak Sedang'}</div>
+            </div>
+            <div class="bg-black/20 p-3 rounded-xl border border-white/10">
+              <span class="text-amber-200/80 block text-[11px] mb-0.5">Estimasi Kebutuhan RAB:</span>
+              <span class="font-extrabold text-white text-sm">Rp ${Number(item.estimasi_biaya || 0).toLocaleString('id-ID')}</span>
+              <div class="text-[11px] text-white/70 mt-0.5">Tgl: ${item.tgl_pendataan || '-'}</div>
+            </div>
+            <div class="bg-black/20 p-3 rounded-xl border border-white/10">
+              <span class="text-amber-200/80 block text-[11px] mb-0.5">Uraian Kebutuhan:</span>
+              <span class="font-medium text-white/90 line-clamp-2">${item.kebutuhan_penanganan || 'Perbaikan / Rehabilitasi Sarpras'}</span>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+            <div>
+              ${item.foto_sarpras_url ? `<a href="${item.foto_sarpras_url}" target="_blank" class="inline-flex items-center gap-1.5 text-xs text-amber-300 hover:text-white underline"><span class="material-symbols-outlined text-[16px]">photo_camera</span><span>Lihat Lampiran Foto Kerusakan</span></a>` : ''}
+            </div>
+            <button type="button" onclick="printPublicSarprasSlip('${item.id_sarpras}')" class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 border border-white/30 transition-all shadow-sm active:scale-95">
+              <span class="material-symbols-outlined text-[16px]">print</span>
+              <span>Cetak Berita Acara / Surat Verifikasi</span>
+            </button>
+          </div>
+        </div>
+      `;
+    });
+    listContainer.innerHTML = html;
+  } else {
+    countSpan.innerText = "0 Usulan";
+    countSpan.className = "text-xs bg-rose-500/30 text-rose-200 border border-rose-400/30 px-3 py-0.5 rounded-full font-bold";
+    listContainer.innerHTML = `
+      <div class="p-6 text-center bg-black/20 rounded-2xl border border-white/10 text-white">
+        <span class="material-symbols-outlined text-4xl text-amber-300 mb-2">search_off</span>
+        <p class="font-bold text-sm">Usulan Sarpras Tidak Ditemukan</p>
+        <p class="text-xs text-amber-200/80 mt-1 max-w-md mx-auto">
+          Belum ada rekam data usulan sarpras dengan nomor registrasi atau NPSN "${query}". Pastikan NPSN sudah sesuai atau ajukan usulan baru di bawah.
+        </p>
+        <button type="button" onclick="openModal('modalSarprasPublic')" class="mt-4 px-5 py-2 bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold rounded-xl text-xs inline-flex items-center gap-1.5 shadow-md">
+          <span class="material-symbols-outlined text-[18px]">add_circle</span>
+          <span>Ajukan Usulan Kerusakan Sekolah Sekarang</span>
+        </button>
+      </div>
+    `;
+  }
+}
+
+function printPublicSarprasSlip(id) {
+  const item = publicSarprasSearchResults.find(x => String(x.id_sarpras) === String(id)) || sarprasCache.find(x => String(x.id_sarpras) === String(id));
+  if (!item) return alert("Data usulan tidak ditemukan.");
+  previewSarprasVerifikasiSlip(id, item);
+}
+
 /**
  * 4. ADMIN AUTHENTICATION (SINGLE ADMIN)
  */
@@ -495,7 +604,22 @@ async function deletePipItem(id) {
   }
 }
 
-// Sarpras Admin CRUD & Manual Input
+// Sarpras Admin CRUD, Verifikasi, & Manual Input
+let currentSarprasFilter = 'all';
+
+function updatePendingSarprasBadge() {
+  const pendingCount = sarprasCache.filter(r => (r.status_usulan || '').trim() === 'Menunggu Verifikasi').length;
+  const badge = document.getElementById('badgePendingSarprasCount');
+  if (badge) {
+    badge.innerText = pendingCount;
+    if (pendingCount > 0) {
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
+  }
+}
+
 async function loadAdminSarpras() {
   const tbody = document.getElementById('tbodyAdminSarpras');
   tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-500">Memuat data Sarpras...</td></tr>`;
@@ -503,12 +627,24 @@ async function loadAdminSarpras() {
   const res = await callGasApi('getSarpras', { token: currentAdminToken });
   sarprasCache = (res && res.success && Array.isArray(res.data)) ? res.data : [];
 
-  if (sarprasCache.length === 0) {
+  updatePendingSarprasBadge();
+  renderSarprasTableData(currentSarprasFilter);
+}
+
+function renderSarprasTableData(filterStatus = 'all') {
+  const tbody = document.getElementById('tbodyAdminSarpras');
+  if (!tbody) return;
+
+  const displayList = filterStatus === 'all'
+    ? sarprasCache
+    : sarprasCache.filter(r => (r.status_usulan || '').trim() === filterStatus);
+
+  if (displayList.length === 0) {
     tbody.innerHTML = `
       <tr>
         <td colspan="8" class="text-center py-8 text-slate-400">
           <span class="material-symbols-outlined text-4xl block text-slate-300 mb-2">folder_open</span>
-          <p class="font-bold text-slate-600">Belum ada data usulan / kondisi sarpras.</p>
+          <p class="font-bold text-slate-600">${filterStatus === 'all' ? 'Belum ada data usulan / kondisi sarpras.' : 'Tidak ada usulan dengan status "' + filterStatus + '".'}</p>
           <p class="text-xs text-slate-400 mt-1">Silakan klik tombol <b>+ Input Sarpras Manual</b> di atas untuk menambahkan data.</p>
         </td>
       </tr>
@@ -517,7 +653,7 @@ async function loadAdminSarpras() {
   }
 
   let html = '';
-  sarprasCache.forEach((r, idx) => {
+  displayList.forEach((r, idx) => {
     html += `
       <tr class="border-b hover:bg-slate-50">
         <td class="p-3 font-semibold text-center">${idx + 1}</td>
@@ -530,9 +666,11 @@ async function loadAdminSarpras() {
         <td class="p-3 font-bold">Rp ${Number(r.estimasi_biaya || 0).toLocaleString('id-ID')}</td>
         <td class="p-3">
           <select onchange="updateSarprasStatusAction('${r.id_sarpras}', this.value)" class="text-xs font-semibold p-1.5 border rounded-lg bg-white">
-            <option value="Menunggu Verifikasi" ${r.status_usulan === 'Menunggu Verifikasi' ? 'selected' : ''}>Menunggu</option>
-            <option value="Rekomendasi DAK Fisik 2027" ${r.status_usulan === 'Rekomendasi DAK Fisik 2027' ? 'selected' : ''}>DAK Fisik</option>
-            <option value="Prioritas APBD Perubahan" ${r.status_usulan === 'Prioritas APBD Perubahan' ? 'selected' : ''}>APBD</option>
+            <option value="Menunggu Verifikasi" ${r.status_usulan === 'Menunggu Verifikasi' ? 'selected' : ''}>Menunggu Verifikasi</option>
+            <option value="Rekomendasi DAK Fisik 2027" ${r.status_usulan === 'Rekomendasi DAK Fisik 2027' ? 'selected' : ''}>DAK Fisik 2027</option>
+            <option value="Prioritas APBD Perubahan" ${r.status_usulan === 'Prioritas APBD Perubahan' ? 'selected' : ''}>APBD Perubahan</option>
+            <option value="Perbaikan Swakelola Sekolah (BOSP)" ${r.status_usulan === 'Perbaikan Swakelola Sekolah (BOSP)' ? 'selected' : ''}>Swakelola BOSP</option>
+            <option value="Ditolak / Belum Memenuhi Kriteria" ${r.status_usulan === 'Ditolak / Belum Memenuhi Kriteria' ? 'selected' : ''}>Ditolak</option>
             <option value="Selesai Direhab" ${r.status_usulan === 'Selesai Direhab' ? 'selected' : ''}>Selesai</option>
           </select>
         </td>
@@ -540,15 +678,157 @@ async function loadAdminSarpras() {
           ${r.foto_sarpras_url ? `<a href="${r.foto_sarpras_url}" target="_blank" class="text-primary hover:underline text-xs"><span class="material-symbols-outlined text-[18px]">photo_camera</span></a>` : '-'}
         </td>
         <td class="p-3 text-center">
-          <button onclick="deleteSarprasItem('${r.id_sarpras}')" title="Hapus Data Sarpras" class="text-rose-600 hover:text-rose-800 font-bold text-xs p-1">
-            <i class="fa-solid fa-trash"></i>
-          </button>
+          <div class="flex items-center justify-center gap-1">
+            <button onclick="openModalVerifikasiSarpras('${r.id_sarpras}')" title="Menu Verifikasi & Rekomendasi" class="px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold text-xs shadow-sm inline-flex items-center gap-1 active:scale-95 transition-all">
+              <span class="material-symbols-outlined text-[14px]">domain_verification</span>
+              <span>Verifikasi</span>
+            </button>
+            <button onclick="previewSarprasVerifikasiSlip('${r.id_sarpras}')" title="Cetak Berita Acara" class="p-1 text-slate-500 hover:text-primary rounded-lg hover:bg-slate-100">
+              <span class="material-symbols-outlined text-[18px]">print</span>
+            </button>
+            <button onclick="deleteSarprasItem('${r.id_sarpras}')" title="Hapus Data Sarpras" class="p-1 text-rose-600 hover:text-rose-800 rounded-lg hover:bg-rose-50 font-bold text-xs">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
         </td>
       </tr>
     `;
   });
   tbody.innerHTML = html;
 }
+
+function filterSarprasByStatus(status) {
+  currentSarprasFilter = status;
+  renderSarprasTableData(status);
+
+  const btnAll = document.getElementById('btnFilterSarprasAll');
+  const btnPending = document.getElementById('btnFilterSarprasPending');
+  if (status === 'all') {
+    if (btnAll) btnAll.className = "px-3 py-1.5 bg-primary text-white rounded-xl text-xs font-bold shadow-sm";
+    if (btnPending) btnPending.className = "px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-xl text-xs font-bold border border-amber-300 shadow-sm flex items-center gap-1";
+  } else {
+    if (btnAll) btnAll.className = "px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold border border-slate-300 shadow-sm";
+    if (btnPending) btnPending.className = "px-3 py-1.5 bg-amber-600 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1 ring-2 ring-amber-400";
+  }
+}
+
+function openModalVerifikasiSarpras(id) {
+  const item = sarprasCache.find(x => String(x.id_sarpras) === String(id));
+  if (!item) return alert("Data sarpras tidak ditemukan.");
+
+  document.getElementById('verifSarprasId').value = item.id_sarpras;
+  document.getElementById('verifIdNpsn').innerText = `${item.id_sarpras || '-'} / NPSN: ${item.npsn || '-'}`;
+  document.getElementById('verifNamaSekolah').innerText = item.nama_sekolah || '-';
+  document.getElementById('verifKecamatan').innerText = `Kecamatan ${item.kecamatan || '-'}`;
+  document.getElementById('verifFasilitasKondisi').innerText = `${item.jenis_fasilitas || '-'} (${item.jumlah_unit || 1} Unit) - Kondisi: ${item.kondisi || 'Rusak'}`;
+  document.getElementById('verifPenanganan').innerText = item.kebutuhan_penanganan || 'Rehabilitasi Fasilitas';
+  document.getElementById('verifRab').innerText = `Rp ${Number(item.estimasi_biaya || 0).toLocaleString('id-ID')}`;
+
+  const fotoContainer = document.getElementById('verifFotoContainer');
+  const fotoLink = document.getElementById('verifFotoLink');
+  if (item.foto_sarpras_url) {
+    fotoLink.href = item.foto_sarpras_url;
+    fotoContainer.classList.remove('hidden');
+  } else {
+    fotoContainer.classList.add('hidden');
+  }
+
+  document.getElementById('verifStatusDecision').value = item.status_usulan || 'Menunggu Verifikasi';
+  document.getElementById('modalVerifikasiSarpras').classList.remove('hidden');
+}
+
+async function handleSaveVerifikasiDecision(e) {
+  e.preventDefault();
+  const id = document.getElementById('verifSarprasId').value;
+  const status = document.getElementById('verifStatusDecision').value;
+  const btn = document.getElementById('btnSaveVerifDecision');
+
+  btn.disabled = true;
+  btn.innerHTML = `<span class="inline-block animate-spin mr-1">â³</span> Menyimpan...`;
+
+  const res = await callGasApi('updateSarprasStatus', { id, status }, true);
+  btn.disabled = false;
+  btn.innerHTML = `<span class="material-symbols-outlined text-[18px]">check_circle</span><span>Simpan Hasil Verifikasi</span>`;
+
+  if (res.success) {
+    const item = sarprasCache.find(x => String(x.id_sarpras) === String(id));
+    if (item) item.status_usulan = status;
+    renderSarprasTableData(currentSarprasFilter);
+    updatePendingSarprasBadge();
+    loadDashboardAnalytics();
+    closeModal('modalVerifikasiSarpras');
+    alert(`Verifikasi berhasil disimpan!\nStatus usulan kini menjadi: ${status}`);
+  } else {
+    alert("Gagal menyimpan verifikasi: " + res.message);
+  }
+}
+
+function previewCurrentVerifikasiSlip() {
+  const id = document.getElementById('verifSarprasId').value;
+  if (!id) return;
+  previewSarprasVerifikasiSlip(id);
+}
+
+function previewSarprasVerifikasiSlip(id, directItem = null) {
+  const item = directItem || sarprasCache.find(x => String(x.id_sarpras) === String(id));
+  if (!item) return alert("Data sarpras tidak ditemukan.");
+
+  const contentHtml = `
+    <div style="font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.6; color: #1e293b;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h3 style="font-size: 13pt; font-weight: bold; margin: 0; text-decoration: underline;">BERITA ACARA VERIFIKASI KELAYAKAN SARANA &amp; PRASARANA</h3>
+        <p style="margin: 4px 0 0 0; font-size: 10pt; color: #475569;">Nomor Registrasi: <b>${item.id_sarpras || '-'}</b></p>
+      </div>
+
+      <p style="margin-bottom: 12px; text-align: justify;">
+        Pada hari ini, Tim Teknis Verifikasi Seksi Kelembagaan dan Sarana Prasarana Bidang Pembinaan Pendidikan Dasar Dinas Pendidikan dan Kebudayaan Kabupaten Konawe Utara telah melakukan verifikasi dokumen dan validasi kelayakan usulan fisik sekolah dengan rincian data sebagai berikut:
+      </p>
+
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 10pt;">
+        <tr>
+          <td style="width: 32%; padding: 7px; border: 1px solid #cbd5e1; font-weight: bold; background: #f8fafc;">Nama Satuan Pendidikan</td>
+          <td style="width: 68%; padding: 7px; border: 1px solid #cbd5e1;"><b>${item.nama_sekolah || '-'}</b></td>
+        </tr>
+        <tr>
+          <td style="padding: 7px; border: 1px solid #cbd5e1; font-weight: bold; background: #f8fafc;">NPSN / Wilayah Kecamatan</td>
+          <td style="padding: 7px; border: 1px solid #cbd5e1;">NPSN: ${item.npsn || '-'} â€¢ Kecamatan ${item.kecamatan || '-'}</td>
+        </tr>
+        <tr>
+          <td style="padding: 7px; border: 1px solid #cbd5e1; font-weight: bold; background: #f8fafc;">Jenis Objek &amp; Volume</td>
+          <td style="padding: 7px; border: 1px solid #cbd5e1;">${item.jenis_fasilitas || '-'} (Sebanyak ${item.jumlah_unit || 1} Unit)</td>
+        </tr>
+        <tr>
+          <td style="padding: 7px; border: 1px solid #cbd5e1; font-weight: bold; background: #f8fafc;">Tingkat Kerusakan Lapangan</td>
+          <td style="padding: 7px; border: 1px solid #cbd5e1; font-weight: bold; color: ${item.kondisi === 'Rusak Berat' ? '#b91c1c' : '#d97706'};">${item.kondisi || 'Rusak Sedang'}</td>
+        </tr>
+        <tr>
+          <td style="padding: 7px; border: 1px solid #cbd5e1; font-weight: bold; background: #f8fafc;">Uraian Rencana Penanganan</td>
+          <td style="padding: 7px; border: 1px solid #cbd5e1;">${item.kebutuhan_penanganan || 'Rehabilitasi ruang kelas / sarana penunjang'}</td>
+        </tr>
+        <tr>
+          <td style="padding: 7px; border: 1px solid #cbd5e1; font-weight: bold; background: #f8fafc;">Estimasi Kebutuhan RAB</td>
+          <td style="padding: 7px; border: 1px solid #cbd5e1; font-weight: bold; color: #0f172a;">Rp ${Number(item.estimasi_biaya || 0).toLocaleString('id-ID')}</td>
+        </tr>
+        <tr>
+          <td style="padding: 7px; border: 1px solid #cbd5e1; font-weight: bold; background: #f8fafc;">Status Keputusan Verifikasi</td>
+          <td style="padding: 7px; border: 1px solid #cbd5e1; font-weight: bold; font-size: 11pt; color: #0284c7;">
+            â­ ${item.status_usulan || 'Menunggu Verifikasi'}
+          </td>
+        </tr>
+      </table>
+
+      <div style="background: #f1f5f9; padding: 12px; border-left: 4px solid #0284c7; border-radius: 6px; margin-bottom: 24px; font-size: 10pt;">
+        <b>Catatan Resmi Tim Verifikator Disdikbud Konawe Utara:</b>
+        <p style="margin: 4px 0 0 0; color: #334155;">
+          Usulan telah diperiksa kesesuaiannya dengan Data Pokok Pendidikan (Dapodik) dan pertimbangan kelayakan teknis prasarana dasar. Rekomendasi di atas menjadi dasar acuan penyusunan Rencana Kerja Pemerintah Daerah (RKPD) dan usulan Dana Alokasi Khusus (DAK) Fisik Pendidikan.
+        </p>
+      </div>
+    </div>
+  `;
+
+  openPdfModal("BERITA ACARA VERIFIKASI SARANA &amp; PRASARANA", "DISDIKBUD KABUPATEN KONAWE UTARA - BIDANG PENDIDIKAN DASAR", contentHtml);
+}
+
 
 async function handleSaveSarprasAdmin(e) {
   e.preventDefault();

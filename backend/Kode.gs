@@ -229,6 +229,9 @@ function doGet(e) {
       case 'checkPip':
         result = handleCheckPip(p.nisn, p.ibu);
         break;
+      case 'checkSarpras':
+        result = handleCheckSarpras(p.query || p.npsn || p.id);
+        break;
       case 'getBosp':
         result = handleGetBosp(p.token);
         break;
@@ -288,6 +291,9 @@ function doPost(e) {
         break;
       case 'updateSarprasStatus':
         result = handleUpdateSarprasStatus(data.id || body.id, data.status || body.status, token);
+        break;
+      case 'checkSarpras':
+        result = handleCheckSarpras(data.query || body.query || data.npsn || body.npsn || data.id || body.id);
         break;
       case 'saveSarpras':
         result = handleSaveSarpras(data, token);
@@ -407,6 +413,39 @@ function handleCheckPip(nisn, ibu) {
     }
   }
   return { success: false, message: "Data siswa dengan NISN " + cleanNisn + " tidak ditemukan." };
+}
+
+function handleCheckSarpras(query) {
+  if (!query) return { success: false, message: "Masukkan NPSN Sekolah atau Nomor Usulan Sarpras." };
+  const cleanQ = String(query).trim().toLowerCase();
+  const rows = readSheetAsObjects('TB_Sarpras');
+  
+  const matches = rows.filter(r => {
+    return String(r.npsn || '').toLowerCase().includes(cleanQ) ||
+           String(r.id_sarpras || '').toLowerCase().includes(cleanQ) ||
+           String(r.nama_sekolah || '').toLowerCase().includes(cleanQ);
+  });
+
+  if (matches.length > 0) {
+    return {
+      success: true,
+      data: matches.map(r => ({
+        id_sarpras: r.id_sarpras,
+        tgl_pendataan: r.tgl_pendataan,
+        npsn: r.npsn,
+        nama_sekolah: r.nama_sekolah,
+        kecamatan: r.kecamatan,
+        jenis_fasilitas: r.jenis_fasilitas,
+        kondisi: r.kondisi,
+        jumlah_unit: r.jumlah_unit,
+        kebutuhan_penanganan: r.kebutuhan_penanganan,
+        estimasi_biaya: r.estimasi_biaya,
+        status_usulan: r.status_usulan,
+        foto_sarpras_url: r.foto_sarpras_url
+      }))
+    };
+  }
+  return { success: false, message: "Usulan Sarpras dengan NPSN / No. Registrasi '" + query + "' belum ditemukan atau masih dalam proses perekaman." };
 }
 
 function handleGetBosp(token) {
