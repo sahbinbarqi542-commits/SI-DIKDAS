@@ -194,7 +194,7 @@
               <div class="text-2xl font-bold text-slate-900 mb-1">100%</div>
               <div class="text-xs text-slate-500 font-medium leading-snug">Realisasi Penyaluran Tahap I 2026 Tuntas</div>
               <div class="mt-3 pt-2 border-t border-slate-200 flex items-center justify-between text-[11px] text-emerald-700 font-bold">
-                <span id="dashBospMetric">Rp 18.4 Milyar</span>
+                <span id="dashBospMetric">Rp 0</span>
                 <span>Tepat Waktu</span>
               </div>
             </div>
@@ -211,7 +211,7 @@
                   Rp 450rb - 750rb
                 </div>
               </div>
-              <div class="text-xs font-bold text-slate-900">6.420 Siswa Konut</div>
+              <div class="text-xs font-bold text-slate-900" id="dashPipMetric">0 Siswa Konut</div>
               <div class="text-[11px] text-slate-500">Terverifikasi Siap Tarik</div>
             </div>
 
@@ -221,8 +221,8 @@
                 <span class="px-2 py-0.5 rounded-full bg-blue-100 text-primary text-xs font-bold">Kondisi Fisik</span>
                 <span class="material-symbols-outlined text-primary text-[20px]">apartment</span>
               </div>
-              <div class="text-3xl font-extrabold text-slate-900 mb-1">62% Baik</div>
-              <div class="text-xs text-slate-500 mb-3">124 SD &amp; SMP di 13 Kecamatan</div>
+              <div class="text-3xl font-extrabold text-slate-900 mb-1" id="dashSarprasMetric">0 Usulan</div>
+              <div class="text-xs text-slate-500 mb-3" id="dashSekolahSummary">0 Sekolah Terdata</div>
               <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden mb-1 flex">
                 <div class="bg-emerald-500 h-full w-[62%]"></div>
                 <div class="bg-amber-400 h-full w-[25%]"></div>
@@ -465,10 +465,10 @@
               <span class="text-xs font-bold text-slate-600">Lembaga Pendidikan</span>
               <span class="material-symbols-outlined text-primary text-[24px]">school</span>
             </div>
-            <div class="text-3xl font-extrabold text-primary mb-1">124</div>
+            <div class="text-3xl font-extrabold text-primary mb-1" id="statTotalSekolah">0</div>
             <div class="text-xs text-slate-500">Satuan Pendidikan SD &amp; SMP se-Konawe Utara</div>
             <div class="mt-4 flex items-center gap-2 text-[11px] text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full w-fit font-bold">
-              <span>91 SD</span> • <span>33 SMP</span>
+              <span id="statSubSekolah">Data Terverifikasi</span>
             </div>
           </div>
 
@@ -477,7 +477,7 @@
               <span class="text-xs font-bold text-slate-600">Penyaluran BOSP</span>
               <span class="material-symbols-outlined text-amber-600 text-[24px]">price_check</span>
             </div>
-            <div class="text-3xl font-extrabold text-slate-900 mb-1">Rp 18.4 M</div>
+            <div class="text-3xl font-extrabold text-slate-900 mb-1" id="statTotalBosp">Rp 0</div>
             <div class="text-xs text-slate-500">Total Alokasi Penyaluran Tahap 1 &amp; 2</div>
             <div class="mt-4 flex items-center gap-1.5 text-[11px] text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full w-fit font-bold">
               <span class="material-symbols-outlined text-[14px]">done_all</span>
@@ -490,7 +490,7 @@
               <span class="text-xs font-bold text-slate-600">Beasiswa PIP Siswa</span>
               <span class="material-symbols-outlined text-primary text-[24px]">family_restroom</span>
             </div>
-            <div class="text-3xl font-extrabold text-primary mb-1">6,420</div>
+            <div class="text-3xl font-extrabold text-primary mb-1" id="statTotalPip">0</div>
             <div class="text-xs text-slate-500">Siswa Penerima Manfaat Terverifikasi</div>
             <div class="mt-4 flex items-center gap-1.5 text-[11px] text-primary bg-blue-50 px-2.5 py-1 rounded-full w-fit font-bold">
               <span class="material-symbols-outlined text-[14px]">credit_card</span>
@@ -500,10 +500,10 @@
 
           <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
             <div class="flex items-center justify-between text-slate-400 mb-2">
-              <span class="text-xs font-bold text-slate-600">Usulan DAK Fisik</span>
+              <span class="text-xs font-bold text-slate-600">Usulan Sarpras</span>
               <span class="material-symbols-outlined text-amber-600 text-[24px]">architecture</span>
             </div>
-            <div class="text-3xl font-extrabold text-slate-900 mb-1">48</div>
+            <div class="text-3xl font-extrabold text-slate-900 mb-1" id="statTotalSarpras">0</div>
             <div class="text-xs text-slate-500">Sekolah Prioritas Revitalisasi 2026/2027</div>
             <div class="mt-4 flex items-center gap-1.5 text-[11px] text-amber-800 bg-amber-50 px-2.5 py-1 rounded-full w-fit font-bold">
               <span class="material-symbols-outlined text-[14px]">pending_actions</span>
@@ -941,17 +941,20 @@
 
       <!-- Navigation Tabs -->
       <div class="bg-slate-100 border-b border-slate-200 px-6 py-2.5 flex items-center gap-2 overflow-x-auto shrink-0 text-xs font-bold text-slate-700">
-        <button id="btn-adm-tab-dash" onclick="switchAdminSubTab('adm-tab-dash')" class="adm-nav-btn px-4 py-2 rounded-xl bg-primary text-white transition-all">
+        <button id="btn-adm-tab-dash" onclick="switchAdminSubTab('adm-tab-dash')" class="adm-nav-btn px-4 py-2 rounded-xl bg-primary text-white transition-all whitespace-nowrap">
           Dashboard Grafik
         </button>
-        <button id="btn-adm-tab-bosp" onclick="switchAdminSubTab('adm-tab-bosp')" class="adm-nav-btn px-4 py-2 rounded-xl hover:bg-slate-200 transition-all">
-          Data Penyaluran BOSP
+        <button id="btn-adm-tab-bosp" onclick="switchAdminSubTab('adm-tab-bosp')" class="adm-nav-btn px-4 py-2 rounded-xl hover:bg-slate-200 transition-all whitespace-nowrap">
+          Kurikulum: Dana BOSP
         </button>
-        <button id="btn-adm-tab-sarpras" onclick="switchAdminSubTab('adm-tab-sarpras')" class="adm-nav-btn px-4 py-2 rounded-xl hover:bg-slate-200 transition-all">
-          Verifikasi Sarpras
+        <button id="btn-adm-tab-pip" onclick="switchAdminSubTab('adm-tab-pip')" class="adm-nav-btn px-4 py-2 rounded-xl hover:bg-slate-200 transition-all whitespace-nowrap">
+          Kurikulum: Beasiswa PIP
         </button>
-        <button id="btn-adm-tab-settings" onclick="switchAdminSubTab('adm-tab-settings')" class="adm-nav-btn px-4 py-2 rounded-xl hover:bg-slate-200 transition-all">
-          Ganti Logo &amp; Pengaturan
+        <button id="btn-adm-tab-sarpras" onclick="switchAdminSubTab('adm-tab-sarpras')" class="adm-nav-btn px-4 py-2 rounded-xl hover:bg-slate-200 transition-all whitespace-nowrap">
+          Sarpras: Usulan &amp; Fisik
+        </button>
+        <button id="btn-adm-tab-settings" onclick="switchAdminSubTab('adm-tab-settings')" class="adm-nav-btn px-4 py-2 rounded-xl hover:bg-slate-200 transition-all whitespace-nowrap">
+          Logo &amp; Pengaturan
         </button>
       </div>
 
@@ -976,11 +979,11 @@
           </div>
         </div>
 
-        <!-- Tab 2: BOSP CRUD & Export -->
+        <!-- Tab 2: BOSP CRUD & Export (Kurikulum) -->
         <div id="adm-tab-bosp" class="adm-subtab-content hidden space-y-4">
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200">
             <div>
-              <h4 class="font-bold text-slate-900 text-sm">Manajemen Dana BOSP</h4>
+              <h4 class="font-bold text-slate-900 text-sm">Manajemen Dana BOSP (Seksi Kurikulum)</h4>
               <p class="text-xs text-slate-500">Rekapitulasi alokasi, status salur, dan verifikasi SPJ</p>
             </div>
             <div class="flex items-center gap-2">
@@ -1017,16 +1020,58 @@
           </div>
         </div>
 
-        <!-- Tab 3: Sarpras Verification -->
+        <!-- Tab 3: Beasiswa PIP CRUD & Export (Kurikulum) -->
+        <div id="adm-tab-pip" class="adm-subtab-content hidden space-y-4">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200">
+            <div>
+              <h4 class="font-bold text-slate-900 text-sm">Manajemen Beasiswa PIP Siswa (Seksi Kurikulum)</h4>
+              <p class="text-xs text-slate-500">Pendataan penerima manfaat Program Indonesia Pintar SD &amp; SMP</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="exportPipToExcel()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm">
+                <i class="fa-solid fa-file-excel me-1"></i> Unduh Excel (.xlsx)
+              </button>
+              <button onclick="openModal('modalAddPip')" class="px-3 py-2 bg-primary hover:bg-primary-container text-white rounded-xl text-xs font-bold shadow-sm">
+                + Input Siswa PIP Baru
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl border border-slate-200 overflow-x-auto shadow-sm">
+            <table class="w-full text-xs text-left">
+              <thead class="bg-slate-100 text-slate-700 font-bold uppercase text-[11px] border-b">
+                <tr>
+                  <th class="p-3 text-center">No</th>
+                  <th class="p-3">NISN</th>
+                  <th class="p-3">Nama Siswa</th>
+                  <th class="p-3">Sekolah &amp; Kelas</th>
+                  <th class="p-3">Kecamatan</th>
+                  <th class="p-3">Nominal Bantuan</th>
+                  <th class="p-3">Status Cair</th>
+                  <th class="p-3">Bank Penyalur</th>
+                  <th class="p-3 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyAdminPip">
+                <tr><td colspan="9" class="text-center py-4 text-slate-400">Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 4: Sarpras Verification & Manual Input -->
         <div id="adm-tab-sarpras" class="adm-subtab-content hidden space-y-4">
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200">
             <div>
-              <h4 class="font-bold text-slate-900 text-sm">Verifikasi Usulan Sarpras Sekolah</h4>
-              <p class="text-xs text-slate-500">Evaluasi kerusakan dan penetapan rekomendasi DAK/APBD</p>
+              <h4 class="font-bold text-slate-900 text-sm">Verifikasi &amp; Input Sarpras Sekolah (Seksi Sarpras)</h4>
+              <p class="text-xs text-slate-500">Evaluasi kerusakan, input manual kondisi, dan penetapan rekomendasi DAK/APBD</p>
             </div>
             <div class="flex items-center gap-2">
               <button onclick="exportSarprasToExcel()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm">
                 <i class="fa-solid fa-file-excel me-1"></i> Unduh Excel (.xlsx)
+              </button>
+              <button onclick="openModal('modalAddSarpras')" class="px-3 py-2 bg-primary hover:bg-primary-container text-white rounded-xl text-xs font-bold shadow-sm">
+                + Input Sarpras Manual
               </button>
             </div>
           </div>
@@ -1042,16 +1087,17 @@
                   <th class="p-3">Estimasi RAB</th>
                   <th class="p-3">Status Usulan</th>
                   <th class="p-3 text-center">Foto Bukti</th>
+                  <th class="p-3 text-center">Aksi</th>
                 </tr>
               </thead>
               <tbody id="tbodyAdminSarpras">
-                <tr><td colspan="7" class="text-center py-4 text-slate-400">Memuat data...</td></tr>
+                <tr><td colspan="8" class="text-center py-4 text-slate-400">Memuat data...</td></tr>
               </tbody>
             </table>
           </div>
         </div>
 
-        <!-- Tab 4: Settings & Live Logo Customizer -->
+        <!-- Tab 5: Settings & Live Logo Customizer -->
         <div id="adm-tab-settings" class="adm-subtab-content hidden">
           <div class="bg-white p-6 rounded-2xl border border-slate-200 max-w-2xl mx-auto shadow-sm">
             <h4 class="font-bold text-slate-900 text-sm mb-4">Pengaturan Identitas &amp; Ganti Logo Dinamis</h4>
@@ -1096,6 +1142,21 @@
                 Simpan Semua Pengaturan
               </button>
             </form>
+
+            <!-- Danger Zone: Reset / Kosongkan Data -->
+            <div class="mt-8 pt-6 border-t border-slate-200">
+              <h5 class="font-bold text-rose-600 text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[18px]">warning</span>
+                <span>Zona Khusus Admin: Pembersihan &amp; Pengosongan Data</span>
+              </h5>
+              <p class="text-xs text-slate-500 mb-3 leading-relaxed">
+                Gunakan tombol di bawah jika Anda ingin mengosongkan seluruh data transaksi (Dana BOSP, Siswa PIP, dan Usulan Sarpras) sehingga database kembali bersih 100% dan hanya terisi jika Admin/Kepala Sekolah menginput data riil.
+              </p>
+              <button type="button" onclick="confirmClearAllData()" id="btnResetDatabase" class="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold rounded-xl text-xs transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">delete_sweep</span>
+                <span>Kosongkan Seluruh Data Transaksi Database</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1169,6 +1230,222 @@
         <button type="submit" class="w-full h-10 bg-primary text-white font-bold rounded-xl mt-3 hover:bg-primary-container">
           Simpan Data BOSP
         </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: INPUT DATA BEASISWA PIP BARU (ADMIN - SEKSI KURIKULUM)
+       ======================================================================== -->
+  <div id="modalAddPip" class="modal-overlay hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal('modalAddPip')" class="absolute top-6 right-6 text-slate-400 hover:text-slate-700">
+        <span class="material-symbols-outlined text-2xl">close</span>
+      </button>
+
+      <h4 class="font-bold text-slate-900 text-sm mb-4">Input Siswa Penerima Beasiswa PIP (Seksi Kurikulum)</h4>
+      
+      <form id="formAddPip" onsubmit="handleSavePipAdmin(event)" class="space-y-3 text-xs font-bold text-slate-700">
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block mb-1">Tahun Anggaran</label>
+            <input type="number" id="admPipTahun" value="2026" required class="w-full h-9 px-3 border rounded-lg text-xs">
+          </div>
+          <div class="col-span-2">
+            <label class="block mb-1">Nomor NISN Siswa</label>
+            <input type="text" id="admPipNisn" maxlength="12" placeholder="0081234567" required class="w-full h-9 px-3 border rounded-lg text-xs font-mono">
+          </div>
+        </div>
+
+        <div>
+          <label class="block mb-1">Nama Lengkap Siswa</label>
+          <input type="text" id="admPipNama" placeholder="Contoh: Muhammad Rifqi Pratama" required class="w-full h-9 px-3 border rounded-lg text-xs">
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div class="col-span-2">
+            <label class="block mb-1">Nama Satuan Pendidikan</label>
+            <input type="text" id="admPipSekolah" placeholder="SD Negeri 1 Asera" required class="w-full h-9 px-3 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block mb-1">Jenjang</label>
+            <select id="admPipJenjang" class="w-full h-9 px-3 border rounded-lg text-xs bg-white">
+              <option value="SD">SD</option>
+              <option value="SMP">SMP</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block mb-1">Kelas</label>
+            <input type="text" id="admPipKelas" placeholder="Kelas V" required class="w-full h-9 px-3 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block mb-1">Kecamatan</label>
+            <select id="admPipKecamatan" class="w-full h-9 px-3 border rounded-lg text-xs bg-white">
+              <option value="Asera">Asera</option>
+              <option value="Andowia">Andowia</option>
+              <option value="Lasolo">Lasolo</option>
+              <option value="Lasolo Kepulauan">Lasolo Kepulauan</option>
+              <option value="Molawe">Molawe</option>
+              <option value="Lembo">Lembo</option>
+              <option value="Sawa">Sawa</option>
+              <option value="Motui">Motui</option>
+              <option value="Waworete">Waworete</option>
+              <option value="Langgikima">Langgikima</option>
+              <option value="Landawe">Landawe</option>
+              <option value="Wiwirano">Wiwirano</option>
+              <option value="Oheo">Oheo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block mb-1">Nominal (Rp)</label>
+            <input type="number" id="admPipNominal" value="450000" required class="w-full h-9 px-3 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block mb-1">Status Cair</label>
+            <select id="admPipStatus" class="w-full h-9 px-3 border rounded-lg text-xs bg-white">
+              <option value="Sudah Cair">Sudah Cair</option>
+              <option value="Proses Bank">Proses Bank</option>
+              <option value="Belum Aktivasi">Belum Aktivasi</option>
+            </select>
+          </div>
+          <div>
+            <label class="block mb-1">Bank Penyalur</label>
+            <select id="admPipBank" class="w-full h-9 px-3 border rounded-lg text-xs bg-white">
+              <option value="Bank BRI Unit Wanggudu">BRI Unit Wanggudu</option>
+              <option value="Bank BRI Unit Lasolo">BRI Unit Lasolo</option>
+              <option value="Bank BNI Konawe Utara">BNI Konawe Utara</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block mb-1">Keterangan Tambahan</label>
+          <input type="text" id="admPipKeterangan" placeholder="Contoh: Dana telah masuk rekening SimPel aktif" class="w-full h-9 px-3 border rounded-lg text-xs">
+        </div>
+
+        <div class="pt-3 flex gap-2">
+          <button type="button" onclick="closeModal('modalAddPip')" class="w-1/3 h-10 border rounded-xl hover:bg-slate-100 font-bold">Batal</button>
+          <button type="submit" id="btnSubmitPipAdmin" class="w-2/3 h-10 bg-primary hover:bg-primary-container text-white font-bold rounded-xl shadow-md">Simpan Data PIP</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL: INPUT DATA SARPRAS MANUAL (ADMIN - SEKSI SARPRAS)
+       ======================================================================== -->
+  <div id="modalAddSarpras" class="modal-overlay hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal('modalAddSarpras')" class="absolute top-6 right-6 text-slate-400 hover:text-slate-700">
+        <span class="material-symbols-outlined text-2xl">close</span>
+      </button>
+
+      <h4 class="font-bold text-slate-900 text-sm mb-4">Input Data Sarpras Manual (Seksi Sarana &amp; Prasarana)</h4>
+      
+      <form id="formAddSarpras" onsubmit="handleSaveSarprasAdmin(event)" class="space-y-3 text-xs font-bold text-slate-700">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block mb-1">Tanggal Pendataan</label>
+            <input type="date" id="admSarTgl" required class="w-full h-9 px-3 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block mb-1">Kecamatan</label>
+            <select id="admSarKecamatan" class="w-full h-9 px-3 border rounded-lg text-xs bg-white">
+              <option value="Asera">Asera</option>
+              <option value="Andowia">Andowia</option>
+              <option value="Lasolo">Lasolo</option>
+              <option value="Lasolo Kepulauan">Lasolo Kepulauan</option>
+              <option value="Molawe">Molawe</option>
+              <option value="Lembo">Lembo</option>
+              <option value="Sawa">Sawa</option>
+              <option value="Motui">Motui</option>
+              <option value="Waworete">Waworete</option>
+              <option value="Langgikima">Langgikima</option>
+              <option value="Landawe">Landawe</option>
+              <option value="Wiwirano">Wiwirano</option>
+              <option value="Oheo">Oheo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block mb-1">NPSN Sekolah</label>
+            <input type="text" id="admSarNpsn" placeholder="40402101" required class="w-full h-9 px-3 border rounded-lg text-xs">
+          </div>
+          <div class="col-span-2">
+            <label class="block mb-1">Nama Satuan Pendidikan</label>
+            <input type="text" id="admSarSekolah" placeholder="SD Negeri 1 Asera" required class="w-full h-9 px-3 border rounded-lg text-xs">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div class="col-span-2">
+            <label class="block mb-1">Jenis Fasilitas / Ruang</label>
+            <select id="admSarFasilitas" class="w-full h-9 px-3 border rounded-lg text-xs bg-white">
+              <option value="Ruang Kelas">Ruang Kelas</option>
+              <option value="Lab Komputer TIK / Chromebook">Lab Komputer TIK / Chromebook</option>
+              <option value="Laboratorium IPA">Laboratorium IPA</option>
+              <option value="Perpustakaan Sekolah">Perpustakaan Sekolah</option>
+              <option value="Toilet / Sanitasi Siswa & Guru">Toilet / Sanitasi Siswa & Guru</option>
+              <option value="Ruang Guru / Kepala Sekolah">Ruang Guru / Kepala Sekolah</option>
+              <option value="Rumah Dinas Guru">Rumah Dinas Guru</option>
+              <option value="Mebeler (Meja & Kursi)">Mebeler (Meja & Kursi)</option>
+              <option value="Pagar & Halaman Sekolah">Pagar & Halaman Sekolah</option>
+            </select>
+          </div>
+          <div>
+            <label class="block mb-1">Jumlah Unit</label>
+            <input type="number" id="admSarJumlah" value="1" min="1" required class="w-full h-9 px-3 border rounded-lg text-xs">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block mb-1">Tingkat Kondisi</label>
+            <select id="admSarKondisi" class="w-full h-9 px-3 border rounded-lg text-xs bg-white">
+              <option value="Baik">Baik</option>
+              <option value="Rusak Sedang">Rusak Sedang</option>
+              <option value="Rusak Berat">Rusak Berat</option>
+            </select>
+          </div>
+          <div>
+            <label class="block mb-1">Status Usulan</label>
+            <select id="admSarStatus" class="w-full h-9 px-3 border rounded-lg text-xs bg-white">
+              <option value="Menunggu Verifikasi">Menunggu Verifikasi</option>
+              <option value="Rekomendasi DAK Fisik 2027">Rekomendasi DAK Fisik 2027</option>
+              <option value="Prioritas APBD Perubahan">Prioritas APBD Perubahan</option>
+              <option value="Selesai Direhab">Selesai Direhab</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block mb-1">Kebutuhan Penanganan Spesifik</label>
+          <input type="text" id="admSarPenanganan" placeholder="Contoh: Rehabilitasi total rangka atap & plafon" required class="w-full h-9 px-3 border rounded-lg text-xs">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block mb-1">Estimasi RAB (Rp)</label>
+            <input type="number" id="admSarRab" placeholder="Contoh: 125000000" required class="w-full h-9 px-3 border rounded-lg text-xs">
+          </div>
+          <div>
+            <label class="block mb-1">Link URL Foto Bukti (Opsional)</label>
+            <input type="url" id="admSarFoto" placeholder="https://..." class="w-full h-9 px-3 border rounded-lg text-xs">
+          </div>
+        </div>
+
+        <div class="pt-3 flex gap-2">
+          <button type="button" onclick="closeModal('modalAddSarpras')" class="w-1/3 h-10 border rounded-xl hover:bg-slate-100 font-bold">Batal</button>
+          <button type="submit" id="btnSubmitSarprasAdmin" class="w-2/3 h-10 bg-primary hover:bg-primary-container text-white font-bold rounded-xl shadow-md">Simpan Data Sarpras</button>
+        </div>
       </form>
     </div>
   </div>

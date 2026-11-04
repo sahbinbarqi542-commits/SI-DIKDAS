@@ -14,6 +14,7 @@ let currentAdminToken = sessionStorage.getItem('SI_DIKDAS_TOKEN') || null;
 let currentAdminUser = sessionStorage.getItem('SI_DIKDAS_USER') || null;
 let appConfigCache = null;
 let bospCache = [];
+let pipCache = [];
 let sarprasCache = [];
 let chartBospObj = null;
 let chartSarprasObj = null;
@@ -304,6 +305,7 @@ function showAdminDashboard() {
   document.getElementById('modalAdminPanel').classList.remove('hidden');
   switchAdminSubTab('adm-tab-dash');
   loadAdminBosp();
+  loadAdminPip();
   loadAdminSarpras();
 }
 
@@ -319,21 +321,26 @@ function switchAdminSubTab(tabId) {
 }
 
 /**
- * 5. BOSP & SARPRAS ADMIN CRUD
+ * 5. BOSP, PIP, & SARPRAS ADMIN CRUD (INPUT MANUAL LENGKAP)
  */
 async function loadAdminBosp() {
   const tbody = document.getElementById('tbodyAdminBosp');
-  tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-slate-500">Memuat data BOSP...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-500">Memuat data BOSP...</td></tr>`;
 
   const res = await callGasApi('getBosp', { token: currentAdminToken });
-  if (res && res.success && res.data) {
-    bospCache = res.data;
-  } else if (!bospCache.length) {
-    bospCache = [
-      { id_bosp: 'BOSP-2026-001', npsn: '40402101', nama_sekolah: 'SD Negeri 1 Asera', jenjang: 'SD', kecamatan: 'Asera', alokasi_dana: 185000000, status_salur: 'Tersalurkan' },
-      { id_bosp: 'BOSP-2026-002', npsn: '40402102', nama_sekolah: 'SD Negeri 2 Lasolo', jenjang: 'SD', kecamatan: 'Lasolo', alokasi_dana: 142000000, status_salur: 'Tersalurkan' },
-      { id_bosp: 'BOSP-2026-003', npsn: '40402103', nama_sekolah: 'SMP Negeri 1 Wanggudu', jenjang: 'SMP', kecamatan: 'Asera', alokasi_dana: 320000000, status_salur: 'Tersalurkan' }
-    ];
+  bospCache = (res && res.success && Array.isArray(res.data)) ? res.data : [];
+
+  if (bospCache.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" class="text-center py-8 text-slate-400">
+          <span class="material-symbols-outlined text-4xl block text-slate-300 mb-2">folder_open</span>
+          <p class="font-bold text-slate-600">Belum ada data alokasi BOSP.</p>
+          <p class="text-xs text-slate-400 mt-1">Silakan klik tombol <b>+ Input BOSP Baru</b> di atas untuk menambahkan data manual.</p>
+        </td>
+      </tr>
+    `;
+    return;
   }
 
   let html = '';
@@ -341,19 +348,21 @@ async function loadAdminBosp() {
     html += `
       <tr class="border-b hover:bg-slate-50">
         <td class="p-3 font-semibold text-center">${idx + 1}</td>
-        <td class="p-3 font-mono font-bold text-primary">${r.npsn}</td>
-        <td class="p-3 font-bold">${r.nama_sekolah}</td>
-        <td class="p-3">${r.jenjang}</td>
-        <td class="p-3">${r.kecamatan}</td>
-        <td class="p-3 font-bold text-emerald-700">Rp ${Number(r.alokasi_dana).toLocaleString('id-ID')}</td>
-        <td class="p-3"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${r.status_salur === 'Tersalurkan' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${r.status_salur}</span></td>
+        <td class="p-3 font-mono font-bold text-primary">${r.npsn || '-'}</td>
+        <td class="p-3 font-bold">${r.nama_sekolah || '-'}</td>
+        <td class="p-3">${r.jenjang || '-'}</td>
+        <td class="p-3">${r.kecamatan || '-'}</td>
+        <td class="p-3 font-bold text-emerald-700">Rp ${Number(r.alokasi_dana || 0).toLocaleString('id-ID')}</td>
+        <td class="p-3"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${r.status_salur === 'Tersalurkan' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${r.status_salur || 'Proses'}</span></td>
         <td class="p-3 text-center">
-          <button onclick="deleteBospItem('${r.id_bosp}')" class="text-rose-600 hover:text-rose-800 font-bold text-xs"><i class="fa-solid fa-trash"></i></button>
+          <button onclick="deleteBospItem('${r.id_bosp}')" title="Hapus Data BOSP" class="text-rose-600 hover:text-rose-800 font-bold text-xs p-1">
+            <i class="fa-solid fa-trash"></i>
+          </button>
         </td>
       </tr>
     `;
   });
-  tbody.innerHTML = html || `<tr><td colspan="8" class="text-center py-4 text-slate-400">Belum ada data BOSP.</td></tr>`;
+  tbody.innerHTML = html;
 }
 
 async function handleSaveBospAdmin(e) {
@@ -394,20 +403,117 @@ async function deleteBospItem(id) {
   }
 }
 
-// Sarpras Admin
+// PIP (Program Indonesia Pintar) Admin CRUD
+async function loadAdminPip() {
+  const tbody = document.getElementById('tbodyAdminPip');
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-slate-500">Memuat data PIP...</td></tr>`;
+
+  const res = await callGasApi('getPip', { token: currentAdminToken });
+  pipCache = (res && res.success && Array.isArray(res.data)) ? res.data : [];
+
+  if (pipCache.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="9" class="text-center py-8 text-slate-400">
+          <span class="material-symbols-outlined text-4xl block text-slate-300 mb-2">folder_open</span>
+          <p class="font-bold text-slate-600">Belum ada data siswa penerima beasiswa PIP.</p>
+          <p class="text-xs text-slate-400 mt-1">Silakan klik tombol <b>+ Input Siswa PIP Baru</b> di atas untuk menambahkan data manual.</p>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  let html = '';
+  pipCache.forEach((r, idx) => {
+    html += `
+      <tr class="border-b hover:bg-slate-50">
+        <td class="p-3 font-semibold text-center">${idx + 1}</td>
+        <td class="p-3 font-mono font-bold text-primary">${r.nisn || '-'}</td>
+        <td class="p-3 font-bold">${r.nama_siswa || '-'}</td>
+        <td class="p-3">
+          <div>${r.nama_sekolah || '-'}</div>
+          <div class="text-[11px] text-slate-400">${r.jenjang || ''} - ${r.kelas || ''}</div>
+        </td>
+        <td class="p-3">${r.kecamatan || '-'}</td>
+        <td class="p-3 font-bold text-sky-700">Rp ${Number(r.nominal_bantuan || r.nominal || 0).toLocaleString('id-ID')}</td>
+        <td class="p-3">
+          <span class="px-2.5 py-1 rounded-full text-xs font-bold ${r.status_pencairan === 'Sudah Cair' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+            ${r.status_pencairan || 'Proses'}
+          </span>
+        </td>
+        <td class="p-3 text-xs">${r.nama_bank_penyalur || r.bank || '-'}</td>
+        <td class="p-3 text-center">
+          <button onclick="deletePipItem('${r.id_pip}')" title="Hapus Data PIP" class="text-rose-600 hover:text-rose-800 font-bold text-xs p-1">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+  tbody.innerHTML = html;
+}
+
+async function handleSavePipAdmin(e) {
+  e.preventDefault();
+  const payload = {
+    tahun: document.getElementById('admPipTahun').value,
+    nisn: document.getElementById('admPipNisn').value.trim(),
+    nama_siswa: document.getElementById('admPipNama').value.trim(),
+    nama_sekolah: document.getElementById('admPipSekolah').value.trim(),
+    jenjang: document.getElementById('admPipJenjang').value,
+    kelas: document.getElementById('admPipKelas').value.trim(),
+    kecamatan: document.getElementById('admPipKecamatan').value,
+    nominal_bantuan: document.getElementById('admPipNominal').value,
+    status_pencairan: document.getElementById('admPipStatus').value,
+    nama_bank_penyalur: document.getElementById('admPipBank').value,
+    keterangan: document.getElementById('admPipKeterangan').value.trim()
+  };
+
+  const res = await callGasApi('savePip', payload, true);
+  if (res.success) {
+    alert("Data Beasiswa PIP berhasil disimpan!");
+    document.getElementById('formAddPip').reset();
+    closeModal('modalAddPip');
+    loadAdminPip();
+    loadDashboardAnalytics();
+  } else {
+    alert("Gagal: " + res.message);
+  }
+}
+
+async function deletePipItem(id) {
+  if (confirm("Hapus data siswa PIP ini?")) {
+    const res = await callGasApi('deletePip', { id }, true);
+    if (res.success) {
+      loadAdminPip();
+      loadDashboardAnalytics();
+    } else {
+      alert("Gagal: " + res.message);
+    }
+  }
+}
+
+// Sarpras Admin CRUD & Manual Input
 async function loadAdminSarpras() {
   const tbody = document.getElementById('tbodyAdminSarpras');
-  tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-slate-500">Memuat data Sarpras...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-500">Memuat data Sarpras...</td></tr>`;
 
   const res = await callGasApi('getSarpras', { token: currentAdminToken });
-  if (res && res.success && res.data) {
-    sarprasCache = res.data;
-  } else if (!sarprasCache.length) {
-    sarprasCache = [
-      { id_sarpras: 'SAR-2026-001', npsn: '40402102', nama_sekolah: 'SD Negeri 2 Lasolo', kecamatan: 'Lasolo', jenis_fasilitas: 'Ruang Kelas', kondisi: 'Rusak Berat', estimasi_biaya: 135000000, status_usulan: 'Rekomendasi DAK Fisik 2027', foto_sarpras_url: '' },
-      { id_sarpras: 'SAR-2026-002', npsn: '40402105', nama_sekolah: 'SMP Negeri 1 Wiwirano', kecamatan: 'Wiwirano', jenis_fasilitas: 'Lab Komputer TIK', kondisi: 'Rusak Sedang', estimasi_biaya: 85000000, status_usulan: 'Prioritas APBD Perubahan', foto_sarpras_url: '' },
-      { id_sarpras: 'SAR-2026-003', npsn: '40402101', nama_sekolah: 'SD Negeri 1 Asera', kecamatan: 'Asera', jenis_fasilitas: 'Toilet / Jamban Siswa', kondisi: 'Rusak Berat', estimasi_biaya: 60000000, status_usulan: 'Rekomendasi DAK Fisik 2027', foto_sarpras_url: '' }
-    ];
+  sarprasCache = (res && res.success && Array.isArray(res.data)) ? res.data : [];
+
+  if (sarprasCache.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" class="text-center py-8 text-slate-400">
+          <span class="material-symbols-outlined text-4xl block text-slate-300 mb-2">folder_open</span>
+          <p class="font-bold text-slate-600">Belum ada data usulan / kondisi sarpras.</p>
+          <p class="text-xs text-slate-400 mt-1">Silakan klik tombol <b>+ Input Sarpras Manual</b> di atas untuk menambahkan data.</p>
+        </td>
+      </tr>
+    `;
+    return;
   }
 
   let html = '';
@@ -416,12 +522,12 @@ async function loadAdminSarpras() {
       <tr class="border-b hover:bg-slate-50">
         <td class="p-3 font-semibold text-center">${idx + 1}</td>
         <td class="p-3">
-          <div class="font-bold">${r.nama_sekolah}</div>
-          <div class="text-xs text-slate-400">NPSN: ${r.npsn} - Kec. ${r.kecamatan}</div>
+          <div class="font-bold">${r.nama_sekolah || '-'}</div>
+          <div class="text-xs text-slate-400">NPSN: ${r.npsn || '-'} - Kec. ${r.kecamatan || '-'}</div>
         </td>
-        <td class="p-3 font-medium">${r.jenis_fasilitas}</td>
-        <td class="p-3"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${r.kondisi === 'Rusak Berat' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'}">${r.kondisi}</span></td>
-        <td class="p-3 font-bold">Rp ${Number(r.estimasi_biaya).toLocaleString('id-ID')}</td>
+        <td class="p-3 font-medium">${r.jenis_fasilitas || '-'}</td>
+        <td class="p-3"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${r.kondisi === 'Rusak Berat' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'}">${r.kondisi || 'Baik'}</span></td>
+        <td class="p-3 font-bold">Rp ${Number(r.estimasi_biaya || 0).toLocaleString('id-ID')}</td>
         <td class="p-3">
           <select onchange="updateSarprasStatusAction('${r.id_sarpras}', this.value)" class="text-xs font-semibold p-1.5 border rounded-lg bg-white">
             <option value="Menunggu Verifikasi" ${r.status_usulan === 'Menunggu Verifikasi' ? 'selected' : ''}>Menunggu</option>
@@ -433,10 +539,55 @@ async function loadAdminSarpras() {
         <td class="p-3 text-center">
           ${r.foto_sarpras_url ? `<a href="${r.foto_sarpras_url}" target="_blank" class="text-primary hover:underline text-xs"><span class="material-symbols-outlined text-[18px]">photo_camera</span></a>` : '-'}
         </td>
+        <td class="p-3 text-center">
+          <button onclick="deleteSarprasItem('${r.id_sarpras}')" title="Hapus Data Sarpras" class="text-rose-600 hover:text-rose-800 font-bold text-xs p-1">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
       </tr>
     `;
   });
-  tbody.innerHTML = html || `<tr><td colspan="8" class="text-center py-4 text-slate-400">Belum ada usulan sarpras.</td></tr>`;
+  tbody.innerHTML = html;
+}
+
+async function handleSaveSarprasAdmin(e) {
+  e.preventDefault();
+  const payload = {
+    tgl_pendataan: document.getElementById('admSarTgl').value,
+    npsn: document.getElementById('admSarNpsn').value.trim(),
+    nama_sekolah: document.getElementById('admSarSekolah').value.trim(),
+    kecamatan: document.getElementById('admSarKecamatan').value,
+    jenis_fasilitas: document.getElementById('admSarFasilitas').value,
+    kondisi: document.getElementById('admSarKondisi').value,
+    jumlah_unit: document.getElementById('admSarJumlah').value,
+    kebutuhan_penanganan: document.getElementById('admSarPenanganan').value.trim(),
+    estimasi_biaya: document.getElementById('admSarRab').value,
+    status_usulan: document.getElementById('admSarStatus').value,
+    foto_sarpras_url: document.getElementById('admSarFoto').value.trim()
+  };
+
+  const res = await callGasApi('saveSarpras', payload, true);
+  if (res.success) {
+    alert("Data Sarpras berhasil disimpan secara manual!");
+    document.getElementById('formAddSarpras').reset();
+    closeModal('modalAddSarpras');
+    loadAdminSarpras();
+    loadDashboardAnalytics();
+  } else {
+    alert("Gagal: " + res.message);
+  }
+}
+
+async function deleteSarprasItem(id) {
+  if (confirm("Hapus data sarpras ini?")) {
+    const res = await callGasApi('deleteSarpras', { id }, true);
+    if (res.success) {
+      loadAdminSarpras();
+      loadDashboardAnalytics();
+    } else {
+      alert("Gagal: " + res.message);
+    }
+  }
 }
 
 async function updateSarprasStatusAction(id, status) {
@@ -445,6 +596,34 @@ async function updateSarprasStatusAction(id, status) {
     loadDashboardAnalytics();
   } else {
     alert("Gagal update status: " + res.message);
+  }
+}
+
+// Danger Zone: Kosongkan Seluruh Data Database
+async function confirmClearAllData() {
+  const pass = prompt("PERINGATAN KEAMANAN:\nAnda akan mengosongkan seluruh data transaksi (BOSP, PIP, dan Sarpras).\nKetik 'KOSONGKAN' untuk mengonfirmasi:");
+  if (pass !== 'KOSONGKAN') {
+    alert("Operasi dibatalkan.");
+    return;
+  }
+
+  const btn = document.getElementById('btnResetDatabase');
+  if (btn) btn.disabled = true;
+
+  const res = await callGasApi('clearAllData', {}, true);
+  if (btn) btn.disabled = false;
+
+  if (res && res.success) {
+    alert("✅ Seluruh data transaksi BOSP, PIP, dan Sarpras telah berhasil dikosongkan!\nDatabase kini bersih dan siap diinput manual oleh Admin.");
+    bospCache = [];
+    pipCache = [];
+    sarprasCache = [];
+    loadAdminBosp();
+    loadAdminPip();
+    loadAdminSarpras();
+    loadDashboardAnalytics();
+  } else {
+    alert("Gagal mengosongkan data: " + ((res && res.message) ? res.message : 'Sesi tidak valid'));
   }
 }
 
@@ -488,6 +667,28 @@ function exportSarprasToExcel() {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Sarpras_Konut_2026");
   XLSX.writeFile(wb, "Rekap_Sarpras_Konawe_Utara.xlsx");
+}
+
+function exportPipToExcel() {
+  if (!pipCache || pipCache.length === 0) return alert("Data Beasiswa PIP kosong.");
+  const cleanData = pipCache.map((r, i) => ({
+    "No": i + 1,
+    "Tahun": r.tahun,
+    "NISN": r.nisn,
+    "Nama Siswa": r.nama_siswa,
+    "Nama Sekolah": r.nama_sekolah,
+    "Jenjang": r.jenjang,
+    "Kelas": r.kelas,
+    "Kecamatan": r.kecamatan,
+    "Nominal Bantuan": r.nominal_bantuan || r.nominal,
+    "Status Pencairan": r.status_pencairan || r.status,
+    "Bank Penyalur": r.nama_bank_penyalur || r.bank,
+    "Keterangan": r.keterangan
+  }));
+  const ws = XLSX.utils.json_to_sheet(cleanData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "PIP_Konut_2026");
+  XLSX.writeFile(wb, "Rekap_Penerima_Beasiswa_PIP_Konawe_Utara.xlsx");
 }
 
 /**
@@ -561,9 +762,35 @@ async function loadDashboardAnalytics() {
   const res = await callGasApi('getAnalytics');
   if (res && res.success && res.data) {
     const d = res.data;
-    if (document.getElementById('dashBospMetric')) {
-      document.getElementById('dashBospMetric').innerText = "Rp " + (d.totalBosp / 1000000000).toFixed(1) + " M";
+
+    // Update Landing Page Stats
+    if (document.getElementById('statTotalSekolah')) {
+      document.getElementById('statTotalSekolah').innerText = d.totalSekolah || 0;
     }
+    if (document.getElementById('statTotalBosp')) {
+      document.getElementById('statTotalBosp').innerText = d.totalBosp > 0 ? ("Rp " + (d.totalBosp / 1000000000).toFixed(1) + " M") : "Rp 0";
+    }
+    if (document.getElementById('statTotalPip')) {
+      document.getElementById('statTotalPip').innerText = Number(d.totalPip || 0).toLocaleString('id-ID');
+    }
+    if (document.getElementById('statTotalSarpras')) {
+      document.getElementById('statTotalSarpras').innerText = Number(d.totalSarpras || 0).toLocaleString('id-ID');
+    }
+
+    // Update Hero Fanned Cards
+    if (document.getElementById('dashBospMetric')) {
+      document.getElementById('dashBospMetric').innerText = d.totalBosp > 0 ? ("Rp " + (d.totalBosp / 1000000000).toFixed(1) + " M") : "Rp 0";
+    }
+    if (document.getElementById('dashPipMetric')) {
+      document.getElementById('dashPipMetric').innerText = (d.totalPip || 0) + " Siswa Konut";
+    }
+    if (document.getElementById('dashSarprasMetric')) {
+      document.getElementById('dashSarprasMetric').innerText = (d.totalSarpras || 0) + " Usulan";
+    }
+    if (document.getElementById('dashSekolahSummary')) {
+      document.getElementById('dashSekolahSummary').innerText = (d.totalSekolah || 0) + " Sekolah Terdata";
+    }
+
     renderAdminCharts(d);
   }
 }
@@ -571,9 +798,12 @@ async function loadDashboardAnalytics() {
 function renderAdminCharts(analytics) {
   // Chart BOSP per Kecamatan
   const ctxBosp = document.getElementById('chartAdminBosp');
-  if (ctxBosp && analytics.bospKecamatan) {
-    const labels = Object.keys(analytics.bospKecamatan);
-    const dataVals = Object.values(analytics.bospKecamatan).map(v => (v / 1000000000).toFixed(1));
+  if (ctxBosp) {
+    const rawLabels = (analytics && analytics.bospKecamatan) ? Object.keys(analytics.bospKecamatan) : [];
+    const labels = rawLabels.length > 0 ? rawLabels : ['Belum ada input'];
+    const dataVals = rawLabels.length > 0 
+      ? Object.values(analytics.bospKecamatan).map(v => (v / 1000000000).toFixed(1))
+      : [0];
 
     if (chartBospObj) chartBospObj.destroy();
     chartBospObj = new Chart(ctxBosp, {
@@ -587,25 +817,46 @@ function renderAdminCharts(analytics) {
           borderRadius: 8
         }]
       },
-      options: { responsive: true, plugins: { legend: { display: false } } }
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } } 
+      }
     });
   }
 
   // Chart Sarpras
   const ctxSar = document.getElementById('chartAdminSarpras');
-  if (ctxSar && analytics.sarprasKondisi) {
+  if (ctxSar) {
+    const kondisi = (analytics && analytics.sarprasKondisi) ? analytics.sarprasKondisi : {};
+    const totalSarpras = Object.values(kondisi).reduce((a, b) => a + b, 0);
+
+    let labels = Object.keys(kondisi);
+    let dataVals = Object.values(kondisi);
+    let bgColors = ['#10B981', '#F59E0B', '#EF4444'];
+
+    if (totalSarpras === 0) {
+      labels = ['Menunggu data input'];
+      dataVals = [1];
+      bgColors = ['#cbd5e1'];
+    }
+
     if (chartSarprasObj) chartSarprasObj.destroy();
     chartSarprasObj = new Chart(ctxSar, {
       type: 'doughnut',
       data: {
-        labels: Object.keys(analytics.sarprasKondisi),
+        labels: labels,
         datasets: [{
-          data: Object.values(analytics.sarprasKondisi),
-          backgroundColor: ['#10B981', '#F59E0B', '#EF4444'],
+          data: dataVals,
+          backgroundColor: bgColors,
           borderWidth: 2
         }]
       },
-      options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } } 
+      }
     });
   }
 }

@@ -232,6 +232,9 @@ function doGet(e) {
       case 'getBosp':
         result = handleGetBosp(p.token);
         break;
+      case 'getPip':
+        result = handleGetPip(p.token);
+        break;
       case 'getSarpras':
         result = handleGetSarpras(p.token);
         break;
@@ -277,11 +280,23 @@ function doPost(e) {
       case 'deleteBosp':
         result = handleDeleteBosp(data.id || body.id, token);
         break;
+      case 'savePip':
+        result = handleSavePip(data, token);
+        break;
+      case 'deletePip':
+        result = handleDeletePip(data.id || body.id, token);
+        break;
       case 'updateSarprasStatus':
         result = handleUpdateSarprasStatus(data.id || body.id, data.status || body.status, token);
         break;
       case 'saveSarpras':
         result = handleSaveSarpras(data, token);
+        break;
+      case 'deleteSarpras':
+        result = handleDeleteSarpras(data.id || body.id, token);
+        break;
+      case 'clearAllData':
+        result = handleClearAllData(token);
         break;
       case 'updateConfig':
         result = handleUpdateConfig(data, token);
@@ -328,23 +343,33 @@ function handleGetAnalytics() {
 
   let totalBosp = 0;
   const bospKec = {};
+  const sekolahSet = {};
+
   bospRows.forEach(r => {
     const n = Number(r.alokasi_dana) || 0;
     totalBosp += n;
     const k = r.kecamatan || 'Lainnya';
     bospKec[k] = (bospKec[k] || 0) + n;
+    if (r.npsn) sekolahSet[String(r.npsn).trim()] = true;
   });
 
   const sarprasKondisi = { 'Baik': 0, 'Rusak Sedang': 0, 'Rusak Berat': 0 };
   sarprasRows.forEach(r => {
     const k = r.kondisi || 'Baik';
     sarprasKondisi[k] = (sarprasKondisi[k] || 0) + 1;
+    if (r.npsn) sekolahSet[String(r.npsn).trim()] = true;
   });
+
+  pipRows.forEach(r => {
+    if (r.npsn) sekolahSet[String(r.npsn).trim()] = true;
+  });
+
+  const countSekolah = Object.keys(sekolahSet).length;
 
   return {
     success: true,
     data: {
-      totalSekolah: 124,
+      totalSekolah: countSekolah,
       totalBosp: totalBosp,
       totalPip: pipRows.length,
       totalSarpras: sarprasRows.length,
@@ -388,7 +413,15 @@ function handleGetBosp(token) {
   const session = verifyToken_(token);
   const rows = readSheetAsObjects('TB_BOSP');
   if (!session) {
-    // Publik: kembalikan agregat saja
+    return { success: true, count: rows.length, summary: "Akses detail memerlukan autentikasi Admin." };
+  }
+  return { success: true, data: rows };
+}
+
+function handleGetPip(token) {
+  const session = verifyToken_(token);
+  const rows = readSheetAsObjects('TB_PIP');
+  if (!session) {
     return { success: true, count: rows.length, summary: "Akses detail memerlukan autentikasi Admin." };
   }
   return { success: true, data: rows };
@@ -401,6 +434,90 @@ function handleGetSarpras(token) {
     return { success: true, count: rows.length, summary: "Akses detail memerlukan autentikasi Admin." };
   }
   return { success: true, data: rows };
+}
+
+function handleSavePip(payload, token) {
+  const session = verifyToken_(token);
+  if (!session) return { success: false, message: "Sesi tidak valid." };
+
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const sh = getSheet('TB_PIP');
+    const id = payload.id_pip || ('PIP-' + (payload.tahun || new Date().getFullYear()) + '-' + Utilities.formatDate(new Date(), "GMT+7", "MMddHHmm"));
+    
+    if (payload._row && payload._row > 1) {
+      sh.getRange(payload._row, 2, 1, 11).setValues([[
+        payload.tahun, payload.nisn, payload.nama_siswa, payload.nama_sekolah,
+        payload.jenjang, payload.kelas, payload.kecamatan, Number(payload.nominal_bantuan || payload.nominal || 0),
+        payload.status_pencairan || payload.status || 'Sudah Cair', payload.nama_bank_penyalur || payload.bank || 'BRI',
+        payload.keterangan || ''
+      ]]);
+    } else {
+      sh.appendRow([
+        id, payload.tahun, payload.nisn, payload.nama_siswa, payload.nama_sekolah,
+        payload.jenjang, payload.kelas, payload.kecamatan, Number(payload.nominal_bantuan || payload.nominal || 0),
+        payload.status_pencairan || payload.status || 'Sudah Cair', payload.nama_bank_penyalur || payload.bank || 'BRI',
+        payload.keterangan || ''
+      ]);
+    }
+    bump('TB_PIP');
+    return { success: true, message: "Data Siswa Penerima PIP berhasil disimpan!" };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function handleDeletePip(id, token) {
+  const session = verifyToken_(token);
+  if (!session) return { success: false, message: "Sesi tidak valid." };
+
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const sh = getSheet('TB_PIP');
+    const data = sh.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]) === String(id)) {
+        sh.deleteRow(i + 1);
+        bump('TB_PIP');
+        return { success: true, message: "Data PIP berhasil dihapus." };
+      }
+    }
+    return { success: false, message: "Data PIP tidak ditemukan." };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function handleDeleteSarpras(id, token) {
+  const session = verifyToken_(token);
+  if (!session) return { success: false, message: "Sesi tidak valid." };
+
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const sh = getSheet('TB_Sarpras');
+    const data = sh.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]) === String(id)) {
+        sh.deleteRow(i + 1);
+        bump('TB_Sarpras');
+        return { success: true, message: "Data usulan sarpras berhasil dihapus." };
+      }
+    }
+    return { success: false, message: "Data Sarpras tidak ditemukan." };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function handleClearAllData(token) {
+  const session = verifyToken_(token);
+  if (!session) return { success: false, message: "Sesi tidak valid." };
+
+  clearAllDatabaseTables();
+  return { success: true, message: "Seluruh data transaksi BOSP, PIP, dan Sarpras berhasil dikosongkan. Siap diisi manual oleh Admin." };
 }
 
 function handleGetNews() {
@@ -768,53 +885,62 @@ function setupAppEnvironment() {
     cfgSh.appendRow(['logo_pemkab_url', 'https://upload.wikimedia.org/wikipedia/commons/e/ec/Lambang_Kabupaten_Konawe_Utara.png', 'Logo Pemkab', new Date()]);
   }
 
-  // Setup TB_BOSP
+  // Setup TB_BOSP (Tabel Kosong Siap Input Manual)
   let bospSh = ss.getSheetByName('TB_BOSP');
   if (!bospSh) {
     bospSh = ss.insertSheet('TB_BOSP');
     bospSh.appendRow(['id_bosp', 'tahun', 'tahap', 'npsn', 'nama_sekolah', 'jenjang', 'kecamatan', 'alokasi_dana', 'status_salur', 'tgl_cair', 'catatan_spj', 'url_dokumen_spj']);
     bospSh.getRange(1, 1, 1, 12).setBackground('#0084C9').setFontColor('#FFFFFF').setFontWeight('bold');
-    bospSh.appendRow(['BOSP-2026-001', 2026, 'Tahap 1', '40402101', 'SD Negeri 1 Asera', 'SD', 'Asera', 185000000, 'Tersalurkan', '2026-02-15', 'SPJ Lengkap & Terverifikasi', '']);
-    bospSh.appendRow(['BOSP-2026-002', 2026, 'Tahap 1', '40402102', 'SD Negeri 2 Lasolo', 'SD', 'Lasolo', 142000000, 'Tersalurkan', '2026-02-18', 'SPJ Lengkap & Terverifikasi', '']);
-    bospSh.appendRow(['BOSP-2026-003', 2026, 'Tahap 1', '40402103', 'SMP Negeri 1 Wanggudu', 'SMP', 'Asera', 320000000, 'Tersalurkan', '2026-02-20', 'SPJ Dalam Verifikasi', '']);
-    bospSh.appendRow(['BOSP-2026-004', 2026, 'Tahap 1', '40402104', 'SD Negeri 1 Molawe', 'SD', 'Molawe', 115000000, 'Tersalurkan', '2026-02-22', 'Menunggu SPJ', '']);
-    bospSh.appendRow(['BOSP-2026-005', 2026, 'Tahap 1', '40402105', 'SMP Negeri 1 Wiwirano', 'SMP', 'Wiwirano', 245000000, 'Tersalurkan', '2026-02-25', 'SPJ Lengkap & Terverifikasi', '']);
   }
 
-  // Setup TB_PIP
+  // Setup TB_PIP (Tabel Kosong Siap Input Manual)
   let pipSh = ss.getSheetByName('TB_PIP');
   if (!pipSh) {
     pipSh = ss.insertSheet('TB_PIP');
     pipSh.appendRow(['id_pip', 'tahun', 'nisn', 'nama_siswa', 'nama_sekolah', 'jenjang', 'kelas', 'kecamatan', 'nominal_bantuan', 'status_pencairan', 'nama_bank_penyalur', 'keterangan']);
     pipSh.getRange(1, 1, 1, 12).setBackground('#0084C9').setFontColor('#FFFFFF').setFontWeight('bold');
-    pipSh.appendRow(['PIP-2026-001', 2026, '0081234567', 'Muhammad Rifqi Pratama', 'SD Negeri 1 Asera', 'SD', 'Kelas V', 'Asera', 450000, 'Sudah Cair', 'Bank BRI Unit Wanggudu', 'Dana telah masuk rekening SimPel']);
-    pipSh.appendRow(['PIP-2026-002', 2026, '0082718921', 'Aura Kasih Pratiwi', 'SD Negeri 2 Lasolo', 'SD', 'Kelas IV', 'Lasolo', 450000, 'Sudah Cair', 'Bank BRI Unit Lasolo', 'Buku tabungan aktif']);
-    pipSh.appendRow(['PIP-2026-003', 2026, '0091238472', 'Fikri Al-Ghazali', 'SMP Negeri 1 Wanggudu', 'SMP', 'Kelas VIII', 'Asera', 750000, 'Sudah Cair', 'Bank BRI Unit Wanggudu', 'Telah dicairkan']);
   }
 
-  // Setup TB_Sarpras
+  // Setup TB_Sarpras (Tabel Kosong Siap Input Manual)
   let sarSh = ss.getSheetByName('TB_Sarpras');
   if (!sarSh) {
     sarSh = ss.insertSheet('TB_Sarpras');
     sarSh.appendRow(['id_sarpras', 'tgl_pendataan', 'npsn', 'nama_sekolah', 'kecamatan', 'jenis_fasilitas', 'kondisi', 'jumlah_unit', 'kebutuhan_penanganan', 'estimasi_biaya', 'status_usulan', 'foto_sarpras_url', 'url_proposal']);
     sarSh.getRange(1, 1, 1, 13).setBackground('#0084C9').setFontColor('#FFFFFF').setFontWeight('bold');
-    sarSh.appendRow(['SAR-2026-001', '2026-02-10', '40402102', 'SD Negeri 2 Lasolo', 'Lasolo', 'Ruang Kelas', 'Rusak Berat', 3, 'Rehabilitasi Total Rangka Atap', 135000000, 'Rekomendasi DAK Fisik 2027', '', '']);
-    sarSh.appendRow(['SAR-2026-002', '2026-02-14', '40402105', 'SMP Negeri 1 Wiwirano', 'Wiwirano', 'Lab Komputer TIK', 'Rusak Sedang', 1, 'Perbaikan Kelistrikan & 15 Unit Chromebook', 85000000, 'Prioritas APBD Perubahan', '', '']);
-    sarSh.appendRow(['SAR-2026-003', '2026-02-20', '40402101', 'SD Negeri 1 Asera', 'Asera', 'Toilet / Jamban Siswa', 'Rusak Berat', 4, 'Pembangunan Baru Sanitasi', 60000000, 'Rekomendasi DAK Fisik 2027', '', '']);
   }
 
-  // Setup TB_Pengumuman
+  // Setup TB_Pengumuman (Tabel Kosong Siap Input Manual)
   let newsSh = ss.getSheetByName('TB_Pengumuman');
   if (!newsSh) {
     newsSh = ss.insertSheet('TB_Pengumuman');
     newsSh.appendRow(['id_post', 'tgl_publish', 'judul', 'kategori', 'ringkasan', 'isi_konten', 'file_lampiran_url', 'status_tampil']);
     newsSh.getRange(1, 1, 1, 8).setBackground('#0084C9').setFontColor('#FFFFFF').setFontWeight('bold');
-    newsSh.appendRow(['POST-01', '2026-03-14', 'Jadwal Batas Akhir Cut-Off Pelaporan Realisasi BOSP Tahap I Tahun Anggaran 2026', 'KURIKULUM', 'Dihimbau kepada seluruh Bendahara dan Kepala Satuan Pendidikan jenjang SD & SMP se-Kabupaten Konawe Utara untuk segera menuntaskan input SPJ di portal resmi.', 'Seluruh berkas verifikasi diunggah melalui portal SI-DIKDAS paling lambat 31 Maret 2026.', '', 'PUBLISH']);
-    newsSh.appendRow(['POST-02', '2026-03-11', 'Verifikasi Lapangan Usulan Rehabilitasi Gedung SD Rusak Berat di Kecamatan Wiwirano', 'SARPRAS', 'Tim teknis Disdikbud bersama Dinas PUPR Konut telah merampungkan asesmen kelayakan 12 ruang kelas untuk masuk prioritas DAK Fisik reguler.', 'Format resmi pengajuan proposal rehabilitasi gedung dan bantuan peralatan TIK jenjang SD/SMP.', '', 'PUBLISH']);
-    newsSh.appendRow(['POST-03', '2026-03-08', 'Distribusi 340 Unit Chromebook Tambahan untuk Penguatan Literasi Digital SMP Satap', 'KURIKULUM', 'Memperkecil kesenjangan digital di wilayah pelosok Konawe Utara, bantuan TIK gelombang kedua resmi diserahkan secara simbolis oleh Plt. Kadisdikbud.', 'Kegiatan sosialisasi akan dilaksanakan secara daring dan luring di Aula Dinas Dikbud Konawe Utara.', '', 'PUBLISH']);
   }
 
-  Logger.log("✅ Setup SI-DIKDAS REST Server Berhasil!");
+  Logger.log("✅ Setup SI-DIKDAS REST Server Berhasil! Struktur database kosong telah siap.");
   Logger.log("   Spreadsheet URL : " + ss.getUrl());
   Logger.log("   Drive Folder URL: " + rootFolder.getUrl());
+}
+
+/**
+ * Utilitas untuk Mengosongkan Seluruh Data Transaksi (BOSP, PIP, Sarpras, Pengumuman)
+ * Menjaga baris header tetap ada, hanya menghapus isi baris data.
+ */
+function clearAllDatabaseTables() {
+  const ss = getDb();
+  ['TB_BOSP', 'TB_PIP', 'TB_Sarpras', 'TB_Pengumuman'].forEach(sheetName => {
+    try {
+      const sh = ss.getSheetByName(sheetName);
+      if (sh && sh.getLastRow() > 1) {
+        sh.deleteRows(2, sh.getLastRow() - 1);
+      }
+    } catch (e) {
+      Logger.log("Info clear " + sheetName + ": " + e.message);
+    }
+  });
+  bump('TB_BOSP');
+  bump('TB_PIP');
+  bump('TB_Sarpras');
+  bump('TB_Pengumuman');
+  Logger.log("✅ Seluruh data transaksi BOSP, PIP, Sarpras, dan Pengumuman telah dikosongkan.");
 }
