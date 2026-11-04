@@ -50,10 +50,16 @@ async function callGasApi(action, data = {}, isPost = false) {
   // POST: WAJIB text/plain untuk bypass CORS preflight
   _writeEpoch++;
   try {
+    const payload = {
+      action,
+      data,
+      token: currentAdminToken,
+      ...(typeof data === 'object' && data !== null ? data : {})
+    };
     const res = await fetch(GAS_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action, data, token: currentAdminToken })
+      body: JSON.stringify(payload)
     });
     return await res.json();
   } catch (err) {
