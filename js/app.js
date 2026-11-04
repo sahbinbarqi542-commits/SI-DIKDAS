@@ -103,6 +103,9 @@ async function loadAppConfig() {
   }
 }
 
+const OFFICIAL_LOGO_UTAMA = 'https://upload.wikimedia.org/wikipedia/commons/9/9c/Logo_of_Ministry_of_Education_and_Culture_of_Republic_of_Indonesia.svg';
+const OFFICIAL_LOGO_PEMKAB = 'https://upload.wikimedia.org/wikipedia/commons/e/ec/Lambang_Kabupaten_Konawe_Utara.png';
+
 function applyBranding(cfg) {
   if (cfg.app_name) {
     document.querySelectorAll('.app-title-dynamic').forEach(el => el.innerText = cfg.app_name);
@@ -116,12 +119,23 @@ function applyBranding(cfg) {
   if (cfg.alamat_kantor) {
     document.querySelectorAll('.app-alamat-dynamic').forEach(el => el.innerText = cfg.alamat_kantor);
   }
-  if (cfg.logo_utama_url) {
-    document.querySelectorAll('.logo-utama-dynamic').forEach(el => el.src = cfg.logo_utama_url);
+
+  // Jaga keaslian logo resmi: Tut Wuri Handayani & Lambang Pemkab Konawe Utara
+  const logoUtama = (cfg.logo_utama_url && !cfg.logo_utama_url.includes('GANTI_')) ? cfg.logo_utama_url : OFFICIAL_LOGO_UTAMA;
+  let logoPemkab = (cfg.logo_pemkab_url && !cfg.logo_pemkab_url.includes('GANTI_')) ? cfg.logo_pemkab_url : OFFICIAL_LOGO_PEMKAB;
+
+  if (!logoPemkab || logoPemkab.includes('drive.google.com') || logoPemkab.includes('googleusercontent.com')) {
+    logoPemkab = OFFICIAL_LOGO_PEMKAB;
   }
-  if (cfg.logo_pemkab_url) {
-    document.querySelectorAll('.logo-pemkab-dynamic').forEach(el => el.src = cfg.logo_pemkab_url);
-  }
+
+  document.querySelectorAll('.logo-utama-dynamic').forEach(el => {
+    el.src = logoUtama;
+    el.onerror = () => { el.src = OFFICIAL_LOGO_UTAMA; };
+  });
+  document.querySelectorAll('.logo-pemkab-dynamic').forEach(el => {
+    el.src = logoPemkab;
+    el.onerror = () => { el.src = OFFICIAL_LOGO_PEMKAB; };
+  });
 
   // Populate Setting Inputs
   if (document.getElementById('inputCfgAppName')) {
@@ -133,8 +147,8 @@ function applyBranding(cfg) {
     if (document.getElementById('inputCfgEmail')) {
       document.getElementById('inputCfgEmail').value = cfg.email_dinas || 'dikdas@konaweutarakab.go.id';
     }
-    document.getElementById('inputCfgLogoUtama').value = cfg.logo_utama_url || '';
-    document.getElementById('inputCfgLogoPemkab').value = cfg.logo_pemkab_url || '';
+    document.getElementById('inputCfgLogoUtama').value = logoUtama;
+    document.getElementById('inputCfgLogoPemkab').value = logoPemkab;
     document.getElementById('inputCfgNamaKabid').value = cfg.nama_kabid_dikdas || '';
     document.getElementById('inputCfgNipKabid').value = cfg.nip_kabid_dikdas || '';
   }
@@ -262,7 +276,7 @@ function openAdminModal() {
       showAdminDashboard();
     }
   } else {
-    document.getElementById('modalAdminLogin').classList.remove('hidden');
+    openModal('modalAdminLogin');
   }
 }
 
@@ -350,17 +364,14 @@ function handleAdminLogout() {
 
 function showAdminDashboard() {
   document.getElementById('modalAdminPanel').classList.remove('hidden');
-  loadDashboardAnalytics();
-  loadAdminBosp();
-  loadAdminPip();
-  loadAdminSarpras();
-  loadAdminRuangBelajar();
-  loadAdminNews();
-  loadAdminUsers();
-}
-  loadAdminSarpras();
-  loadAdminRuangBelajar();
-  loadAdminNews();
+  document.getElementById('modalAdminPanel').style.display = 'flex';
+  try { loadDashboardAnalytics(); } catch(e) { console.error('Error loadDashboardAnalytics:', e); }
+  try { loadAdminBosp(); } catch(e) { console.error('Error loadAdminBosp:', e); }
+  try { loadAdminPip(); } catch(e) { console.error('Error loadAdminPip:', e); }
+  try { loadAdminSarpras(); } catch(e) { console.error('Error loadAdminSarpras:', e); }
+  try { loadAdminRuangBelajar(); } catch(e) { console.error('Error loadAdminRuangBelajar:', e); }
+  try { loadAdminNews(); } catch(e) { console.error('Error loadAdminNews:', e); }
+  try { loadAdminUsers(); } catch(e) { console.error('Error loadAdminUsers:', e); }
 }
 
 function scrollToAdminSection(id) {
@@ -1205,17 +1216,28 @@ function triggerLogoUpload(inputId) {
  * Helper Modal
  */
 function closeModal(id) {
-  document.getElementById(id).classList.add('hidden');
+  const el = document.getElementById(id);
+  if (el) {
+    el.classList.add('hidden');
+    el.style.display = 'none';
+  }
 }
 
 function openModal(id) {
-  document.getElementById(id).classList.remove('hidden');
+  const el = document.getElementById(id);
+  if (el) {
+    el.classList.remove('hidden');
+    el.style.display = 'flex';
+  }
 }
 
 function setupEventListeners() {
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      document.querySelectorAll('.modal-overlay').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.modal-overlay').forEach(el => {
+        el.classList.add('hidden');
+        el.style.display = 'none';
+      });
     }
   });
 }
@@ -1748,7 +1770,7 @@ async function deleteUserItem(id) {
  * ============================================================================
  */
 function showSekolahDashboard(user) {
-  document.getElementById('modalSekolahPanel').classList.remove('hidden');
+  openModal('modalSekolahPanel');
   document.getElementById('sekolahHeaderNama').innerText = user.nama_sekolah || 'Satuan Pendidikan';
   document.getElementById('sekolahHeaderNpsn').innerText = 'NPSN: ' + (user.npsn || '-');
   document.getElementById('sekolahHeaderKecamatan').innerText = 'Kecamatan ' + (user.kecamatan || '-') + ', Kab. Konawe Utara';

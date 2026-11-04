@@ -70,6 +70,18 @@
   padding: 1rem;
 }
 
+.modal-overlay.hidden {
+  display: none !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+.modal-overlay:not(.hidden) {
+  display: flex !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+}
+
 /* A4 Print Sheet Container */
 .a4-print-sheet {
   width: 210mm;
